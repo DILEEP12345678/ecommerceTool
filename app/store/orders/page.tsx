@@ -68,7 +68,7 @@ export default function OrdersPage() {
 const OrderCard = memo(({ order, router }: { order: any; router: any }) => {
   return (
     <div
-      onClick={() => router.push(`/orders/${order.orderId}`)}
+      onClick={() => router.push(`/store/orders/${order.orderId}`)}
       className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex flex-col cursor-pointer hover:shadow-md hover:border-blue-300 transition-all"
     >
               {/* Order Header */}

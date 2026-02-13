@@ -4,8 +4,8 @@ import { useQuery } from 'convex/react';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useSetUser, useUser } from '../../components/UserContext';
-import { api } from '../../convex/_generated/api';
+import { useSetUser, useUser } from '../components/UserContext';
+import { api } from '../convex/_generated/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -182,9 +182,11 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full bg-white rounded-2xl shadow-lg p-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
-         Login
+          Welcome Back
         </h1>
-       <br/>
+        <p className="text-gray-600 mb-8 text-center">
+          Select a test account to login
+        </p>
 
         {/* Accounts - Side by Side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

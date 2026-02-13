@@ -48,3 +48,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+#generated convex folders
+/_generated

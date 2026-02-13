@@ -18,8 +18,8 @@ export default function Navbar() {
   };
 
   const customerLinks = [
-    { href: '/', label: 'Shop', icon: Home },
-    { href: '/orders', label: 'My Orders', icon: ClipboardList },
+    { href: '/store', label: 'Shop', icon: Home },
+    { href: '/store/orders', label: 'My Orders', icon: ClipboardList },
   ];
 
   const managerLinks = [
@@ -27,7 +27,7 @@ export default function Navbar() {
   ];
 
   const links = role === 'collection_point_manager' ? managerLinks : customerLinks;
-  const homeLink = role === 'collection_point_manager' ? '/collection-point' : '/';
+  const homeLink = role === 'collection_point_manager' ? '/collection-point' : '/store';
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -43,8 +43,8 @@ export default function Navbar() {
           <div className="flex items-center gap-1">
             {user && links.map((link) => {
               const isActive =
-                link.href === '/'
-                  ? pathname === '/'
+                link.href === '/store'
+                  ? pathname === '/store'
                   : pathname.startsWith(link.href);
               const Icon = link.icon;
 
