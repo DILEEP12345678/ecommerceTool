@@ -20,7 +20,9 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      if (user.role === 'collection_point_manager') {
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else if (user.role === 'collection_point_manager') {
         router.push('/collection-point');
       } else {
         router.push('/store');
@@ -29,6 +31,11 @@ export default function LoginPage() {
   }, [user, router]);
 
   const testUsers = [
+    {
+      email: 'admin@test.com',
+      name: 'Admin',
+      role: 'admin' as const,
+    },
     {
       email: 'customer1@test.com',
       name: 'Customer One',
@@ -78,7 +85,11 @@ export default function LoginPage() {
 
     const userData = testUsers.find((u) => u.email === selectedUser);
     if (userData) {
-      if (userData.role === 'collection_point_manager') {
+      if (userData.role === 'admin') {
+        // Admins go directly to admin dashboard
+        setUser(userData);
+        router.push('/admin');
+      } else if (userData.role === 'collection_point_manager') {
         // Managers don't need to select collection point
         setUser(userData);
         router.push('/collection-point');
@@ -187,6 +198,39 @@ export default function LoginPage() {
         <p className="text-gray-600 mb-8 text-center">
           Select a test account to login
         </p>
+
+        {/* Admin Account */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Admin</h2>
+          <div className="space-y-2">
+            {testUsers
+              .filter((u) => u.role === 'admin')
+              .map((userData) => (
+                <label
+                  key={userData.email}
+                  className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderColor:
+                      selectedUser === userData.email ? '#3b82f6' : '#e5e7eb',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="user"
+                    value={userData.email}
+                    checked={selectedUser === userData.email}
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">{userData.name}</p>
+                    <p className="text-xs text-gray-500">{userData.email}</p>
+                    <p className="text-xs text-purple-600">View all orders across collection points</p>
+                  </div>
+                </label>
+              ))}
+          </div>
+        </div>
 
         {/* Accounts - Side by Side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
