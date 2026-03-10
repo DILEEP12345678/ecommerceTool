@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 import { buildBagPlan } from '../../lib/bagPlan';
 import { useCollectionPoint, useUser, useUserLoaded } from '../../components/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, Suspense } from 'react';
 
 const PAGE_SIZE = 40;
 
@@ -28,6 +28,14 @@ const PRODUCT_IMAGES: Record<string, string> = {
 };
 
 export default function CollectionPointPage() {
+  return (
+    <Suspense>
+      <CollectionPointContent />
+    </Suspense>
+  );
+}
+
+function CollectionPointContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useUser();
