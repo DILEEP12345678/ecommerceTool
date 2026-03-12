@@ -149,21 +149,23 @@ export default function AdminPage() {
             <table className="w-full min-w-[480px]">
               <thead className="bg-gray-50 border-b-2 border-gray-100">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800 whitespace-nowrap">Item ID</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Item Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Collection Points</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold text-gray-800 whitespace-nowrap">Qty</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800 whitespace-nowrap">Product ID</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Product Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Variants</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold text-gray-800 whitespace-nowrap">Total Qty</th>
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {confirmedItemsList.map((item: any) => (
-                  <tr key={item.itemId} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{item.itemId}</td>
-                    <td className="px-4 py-3 text-base font-semibold text-gray-900">{item.itemName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.collectionPoints.join(', ')}</td>
+                {confirmedItemsList.map((product: any) => (
+                  <tr key={product.baseId} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{product.baseId}</td>
+                    <td className="px-4 py-3 text-base font-semibold text-gray-900">{product.productName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {product.variants.map((v: any) => `${v.variantLabel || 'Single'} ×${v.quantity}`).join(', ')}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gray-100 text-gray-900">
-                        {item.quantity}
+                        {product.totalQuantity}
                       </span>
                     </td>
                   </tr>
