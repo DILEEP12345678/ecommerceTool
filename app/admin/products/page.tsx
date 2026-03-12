@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { Check, Layers, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, Layers, Loader2, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
