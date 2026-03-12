@@ -195,6 +195,7 @@ export default function ProductsPage() {
 
           {products.filter(Boolean).map((product: any, idx: number) => {
             const isEditing = editing?.productId === product.productId;
+            const editingState = isEditing ? editing! : null;
             const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
             const available = product.available !== false;
 
@@ -209,7 +210,7 @@ export default function ProductsPage() {
                 <div className="min-w-0">
                   {isEditing ? (
                     <input
-                      value={editing.name}
+                      value={editingState!.name}
                       onChange={e => setEditing(prev => prev && { ...prev, name: e.target.value })}
                       className="w-full text-sm font-semibold bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     />
@@ -230,7 +231,7 @@ export default function ProductsPage() {
                         type="number"
                         min={0}
                         step={0.01}
-                        value={(editing.price / 100).toFixed(2)}
+                        value={(editingState!.price / 100).toFixed(2)}
                         onChange={e => setEditing(prev => prev && { ...prev, price: Math.round(Number(e.target.value) * 100) })}
                         className="w-full text-sm text-right bg-white border border-primary-300 rounded-lg pl-5 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
                       />
@@ -246,7 +247,7 @@ export default function ProductsPage() {
                 <div>
                   {isEditing ? (
                     <select
-                      value={editing.unit}
+                      value={editingState!.unit}
                       onChange={e => setEditing(prev => prev && { ...prev, unit: e.target.value })}
                       className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     >
@@ -265,7 +266,7 @@ export default function ProductsPage() {
                 <div>
                   {isEditing ? (
                     <select
-                      value={editing.sensitivity}
+                      value={editingState!.sensitivity}
                       onChange={e => setEditing(prev => prev && { ...prev, sensitivity: e.target.value })}
                       className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     >
