@@ -29,6 +29,7 @@ export default function HomePage() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [selectedCollectionPoint, setSelectedCollectionPoint] = useState(userCollectionPoint || '');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [cpOpen, setCpOpen] = useState(false);
 
   const products = useQuery(api.products.list);
   const collectionPoints = useQuery(api.users.getCollectionPoints);
@@ -111,27 +112,55 @@ export default function HomePage() {
         <p className="text-gray-500 text-sm mb-0.5">Hello, {username || 'Guest'} 👋</p>
         <h1 className="text-xl font-bold text-gray-900 mb-4">What would you like to order?</h1>
 
-        {/* Collection Point — Amazon-style inline link */}
-        <div className="flex items-center gap-1 text-sm">
-          <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
-          <span className="text-gray-500 whitespace-nowrap">Collect from</span>
-          {!collectionPoints ? (
-            <Loader2 className="w-3.5 h-3.5 text-primary-500 animate-spin ml-1" />
-          ) : (
-            <label className="flex items-center gap-0.5 cursor-pointer group relative">
-              <span className={`font-bold underline underline-offset-2 decoration-dotted ${selectedCollectionPoint ? 'text-primary-600 group-hover:text-primary-800' : 'text-gray-400'}`}>
-                {selectedCollectionPoint || 'Select location'}
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-primary-500 group-hover:text-primary-700" />
-              <select
-                value={selectedCollectionPoint}
-                onChange={e => setSelectedCollectionPoint(e.target.value)}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full"
-              >
-                <option value="">Select a collection point…</option>
-                {collectionPoints.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </label>
+        {/* Collection Point — bubble picker */}
+        <div className="relative inline-block">
+          <button
+            onClick={() => setCpOpen(o => !o)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm border-2 transition-all ${
+              selectedCollectionPoint
+                ? 'bg-primary-50 border-primary-300 text-primary-700 hover:border-primary-400'
+                : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300'
+            }`}
+          >
+            {!collectionPoints ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+            )}
+            <span>{selectedCollectionPoint || 'Select collection point'}</span>
+            <ChevronDown className={`w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${cpOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {cpOpen && collectionPoints && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setCpOpen(false)} />
+              <div className="absolute left-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 min-w-[220px] animate-fade-in-scale">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1">
+                  Collection points
+                </p>
+                <div className="flex flex-col">
+                  {collectionPoints.map((p, idx) => (
+                    <button
+                      key={p}
+                      onClick={() => { setSelectedCollectionPoint(p); setCpOpen(false); }}
+                      className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl ${
+                        selectedCollectionPoint === p
+                          ? 'bg-primary-50 text-primary-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      } ${idx < collectionPoints.length - 1 ? 'border-b border-gray-100' : ''}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${selectedCollectionPoint === p ? 'text-primary-500' : 'text-gray-400'}`} />
+                        {p}
+                      </div>
+                      {selectedCollectionPoint === p && (
+                        <div className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>

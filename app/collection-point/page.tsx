@@ -12,6 +12,8 @@ import { useCollectionPoint, useUser, useUserLoaded } from '../../components/Use
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, memo, Suspense } from 'react';
 import { useLastUpdated } from '../../lib/useLastUpdated';
+import { usePullToRefresh } from '../../lib/usePullToRefresh';
+import PullToRefreshIndicator from '../../components/PullToRefreshIndicator';
 
 const PAGE_SIZE = 40;
 
@@ -100,6 +102,9 @@ function CollectionPointContent() {
   };
 
   const lastUpdated = useLastUpdated(orders);
+  const { pullDistance, isRefreshing } = usePullToRefresh(() => {
+    // Convex is real-time; brief visual feedback is sufficient
+  });
 
   if (counts === undefined) {
     return (
@@ -132,6 +137,7 @@ function CollectionPointContent() {
 
   return (
     <div className="bg-gray-50 pb-24 sm:pb-6">
+      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
 
       {/* ── HERO HEADER ─────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-primary-600 to-primary-700 px-4 pt-4 pb-8">

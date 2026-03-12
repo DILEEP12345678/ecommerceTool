@@ -33,8 +33,9 @@ export default function Navbar() {
   ];
 
   const adminLinks = [
-    { href: '/admin',          label: 'Dashboard', icon: Shield },
-    { href: '/admin/products', label: 'Products',  icon: Tag    },
+    { href: '/admin',                 label: 'Dashboard',     icon: Shield      },
+    { href: '/admin/products',        label: 'Products',      icon: Tag         },
+    { href: '/admin/ordered-items',   label: 'Ordered Items', icon: ShoppingCart },
   ];
 
   const links =
@@ -59,26 +60,46 @@ export default function Navbar() {
     .toUpperCase()
     .slice(0, 2) ?? '';
 
+  const activeLabel = links.find(link =>
+    link.href === '/store'
+      ? pathname === '/store'
+      : pathname === link.href ||
+        (pathname.startsWith(link.href + '/') &&
+         !links.some(l => l.href !== link.href && pathname.startsWith(l.href)))
+  )?.label ?? '';
+
   return (
     <>
       {/* ── MINIMAL TOP BAR ────────────────────────────────── */}
       <nav className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 border-b border-gray-100 dark:border-gray-700">
         <div className="px-4 sm:px-6">
-          <div className="flex justify-between items-center h-14">
+          <div className="relative flex justify-between items-center h-14">
             {/* Logo */}
             <Link href={homeLink} className="flex items-center gap-2">
               <Package className="w-6 h-6 text-primary-500" />
               <span className="text-base font-bold text-gray-900 dark:text-gray-100">Collection Point</span>
             </Link>
 
+            {/* Current page title — center */}
+            {user && activeLabel && (
+              <span className="absolute left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 dark:text-gray-200 pointer-events-none">
+                {activeLabel}
+              </span>
+            )}
+
             {/* Menu trigger */}
             {user ? (
               <button
                 onClick={() => setIsOpen(true)}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500 text-white text-sm font-bold hover:bg-primary-600 transition-colors"
+                className="flex items-center group"
                 aria-label="Open menu"
               >
-                {initials}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 hidden sm:block">{user?.name}</span>
+                  <div className="w-9 h-9 rounded-full bg-primary-500 text-white text-sm font-bold flex items-center justify-center ring-2 ring-white dark:ring-gray-800 group-hover:ring-primary-200 transition-all flex-shrink-0">
+                    {initials}
+                  </div>
+                </div>
               </button>
             ) : (
               <Link
@@ -217,7 +238,7 @@ export default function Navbar() {
       </div>
 
       {/* ── MOBILE BOTTOM TAB BAR ──────────────────────────── */}
-      {user && (
+      {user && role !== 'admin' && (
         <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 shadow-lg bottom-nav">
           <div className="flex">
             {links.map((link) => {

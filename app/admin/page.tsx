@@ -2,26 +2,15 @@
 
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { Loader2, Package, User, MapPin, Hash, ShoppingCart, ChevronDown } from 'lucide-react';
+import { Loader2, Package, User, MapPin, Hash, ChevronDown } from 'lucide-react';
 import { useUser, useUserLoaded } from '../../components/UserContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, memo } from 'react';
+import { usePullToRefresh } from '../../lib/usePullToRefresh';
+import PullToRefreshIndicator from '../../components/PullToRefreshIndicator';
 
 const PAGE_SIZE = 40;
 
-// Product image mapping
-const PRODUCT_IMAGES: Record<string, string> = {
-  'PROD-001': 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop',
-  'PROD-002': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop',
-  'PROD-003': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop',
-  'PROD-004': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop',
-  'PROD-005': 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop',
-  'PROD-006': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=400&fit=crop',
-  'PROD-007': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop',
-  'PROD-008': 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop',
-  'PROD-009': 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&h=400&fit=crop',
-  'PROD-010': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop',
-};
 
 export default function AdminPage() {
   const router = useRouter();
@@ -29,6 +18,7 @@ export default function AdminPage() {
   const loaded = useUserLoaded();
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'confirmed' | 'packed' | 'collected'>('all');
   const [selectedCollectionPoint, setSelectedCollectionPoint] = useState<string>('all');
+  const [cpOpen, setCpOpen] = useState(false);
 
   useEffect(() => {
     if (!loaded) return;
@@ -50,11 +40,19 @@ export default function AdminPage() {
     collectionPoint: selectedCollectionPoint === 'all' ? undefined : selectedCollectionPoint,
   });
 
-  const confirmedItemsList = useQuery(api.orders.getConfirmedItemsSummary, {
-    collectionPoint: selectedCollectionPoint === 'all' ? undefined : selectedCollectionPoint,
-  });
+  const collectionPoints = useQuery(api.users.getCollectionPoints) ?? [];
 
-  const collectionPoints = Array.from(new Set((orders ?? []).map((o: any) => o.collectionPoint)));
+  const productRows = useQuery(api.products.list);
+  const productImageById = new Map<string, string>((productRows ?? []).map((p: any) => [p.productId, p.image]));
+  const productImageByName = new Map<string, string>((productRows ?? []).map((p: any) => [p.name.toLowerCase(), p.image]));
+  const getImage = (itemId: string, itemName: string): string | undefined => {
+    const baseId = itemId.split(':')[0];
+    return productImageById.get(baseId)
+      ?? productImageByName.get(itemName.toLowerCase())
+      ?? productImageByName.get(itemName.split('(')[0].trim().toLowerCase());
+  };
+
+  const { pullDistance, isRefreshing } = usePullToRefresh(() => {});
 
   if (counts === undefined) {
     return (
@@ -80,38 +78,56 @@ export default function AdminPage() {
   const stats = counts ?? { confirmed: 0, packed: 0, collected: 0, total: 0 };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6 pb-20 sm:pb-6">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Package className="w-7 h-7 text-primary-500" />
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        </div>
-        <p className="text-sm text-gray-500 hidden sm:block">All orders across collection points</p>
-      </div>
-
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6 pb-24 sm:pb-6">
+      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
       {/* Collection Point Filter */}
-      <div className="mb-6 bg-white rounded-2xl border-2 border-gray-100 p-5">
-        <label className="block text-base font-semibold text-gray-800 mb-2">
-          Filter by Collection Point
-        </label>
-        <select
-          value={selectedCollectionPoint}
-          onChange={(e) => {
-            setSelectedCollectionPoint(e.target.value);
-            setSelectedStatus('all');
-          }}
-          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl text-gray-900 text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
+      <div className="mb-6 relative">
+        <button
+          onClick={() => setCpOpen(o => !o)}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold shadow-sm border-2 transition-all ${
+            selectedCollectionPoint !== 'all'
+              ? 'bg-primary-50 border-primary-300 text-primary-700 hover:border-primary-400'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+          }`}
         >
-          <option value="all">All Collection Points</option>
-          {collectionPoints.map((cp) => (
-            <option key={cp} value={cp}>{cp}</option>
-          ))}
-        </select>
+          <MapPin className="w-4 h-4 flex-shrink-0" />
+          <span>{selectedCollectionPoint === 'all' ? 'All Collection Points' : selectedCollectionPoint}</span>
+          <ChevronDown className={`w-4 h-4 opacity-60 transition-transform duration-200 ${cpOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {cpOpen && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setCpOpen(false)} />
+            <div className="absolute left-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 min-w-[240px] animate-fade-in-scale">
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1">
+                Collection points
+              </p>
+              <div className="flex flex-col">
+                {[{ value: 'all', label: 'All Collection Points' }, ...collectionPoints.map(cp => ({ value: cp, label: cp }))].map((item, idx, arr) => (
+                  <button
+                    key={item.value}
+                    onClick={() => { setSelectedCollectionPoint(item.value); setSelectedStatus('all'); setCpOpen(false); }}
+                    className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl ${
+                      selectedCollectionPoint === item.value ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'
+                    } ${idx < arr.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${selectedCollectionPoint === item.value ? 'text-primary-500' : 'text-gray-400'}`} />
+                      {item.label}
+                    </div>
+                    {selectedCollectionPoint === item.value && (
+                      <div className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Stats Grid */}
-      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+      {/* Stats Grid — desktop only */}
+      <div className="mb-6 hidden sm:grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {[
           { key: 'all',       label: 'Total',     count: stats.total,     icon: Hash,    active: 'bg-gray-800 border-gray-900', inactive: 'bg-white border-gray-200', activeText: 'text-white', inactiveText: 'text-gray-900', activeLabel: 'text-gray-300', inactiveLabel: 'text-gray-500', activeIcon: 'text-white', inactiveIcon: 'text-gray-500' },
           { key: 'confirmed', label: 'Confirmed', count: stats.confirmed, icon: Package, active: 'bg-yellow-600 border-yellow-700', inactive: 'bg-yellow-50 border-yellow-200', activeText: 'text-white', inactiveText: 'text-yellow-900', activeLabel: 'text-yellow-100', inactiveLabel: 'text-yellow-700', activeIcon: 'text-yellow-100', inactiveIcon: 'text-yellow-700' },
@@ -131,50 +147,6 @@ export default function AdminPage() {
           </button>
         ))}
       </div>
-
-      {/* Items to Pack */}
-      {confirmedItemsList === undefined ? (
-        <div className="mb-6 flex justify-center py-5">
-          <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-        </div>
-      ) : confirmedItemsList.length > 0 && (
-        <div className="mb-6 bg-white rounded-2xl border-2 border-gray-100 p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <ShoppingCart className="w-6 h-6 text-gray-700" />
-            <h2 className="text-lg font-bold text-gray-900">
-              Ordered Items ({confirmedItemsList.length} products)
-            </h2>
-          </div>
-          <div className="overflow-x-auto rounded-xl border-2 border-gray-100">
-            <table className="w-full min-w-[480px]">
-              <thead className="bg-gray-50 border-b-2 border-gray-100">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800 whitespace-nowrap">Product ID</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Product Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Variants</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold text-gray-800 whitespace-nowrap">Total Qty</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white">
-                {confirmedItemsList.map((product: any) => (
-                  <tr key={product.baseId} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{product.baseId}</td>
-                    <td className="px-4 py-3 text-base font-semibold text-gray-900">{product.productName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {product.variants.map((v: any) => `${v.variantLabel || 'Single'} ×${v.quantity}`).join(', ')}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gray-100 text-gray-900">
-                        {product.totalQuantity}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {/* Orders Section */}
       <div className="bg-white rounded-2xl border-2 border-gray-100 p-5">
@@ -198,7 +170,7 @@ export default function AdminPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.map((order: any) => (
-                <OrderCard key={order.orderId} order={order} router={router} />
+                <OrderCard key={order.orderId} order={order} router={router} getImage={getImage} />
               ))}
             </div>
 
@@ -221,11 +193,35 @@ export default function AdminPage() {
           </>
         )}
       </div>
+
+      {/* Mobile status bottom tab bar */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 shadow-lg">
+        <div className="flex">
+          {[
+            { key: 'all',       label: 'All',       count: stats.total,     color: 'text-gray-600',   activeColor: 'text-gray-900',   activeBg: 'bg-gray-100'  },
+            { key: 'confirmed', label: 'Confirmed',  count: stats.confirmed, color: 'text-yellow-500', activeColor: 'text-yellow-700', activeBg: 'bg-yellow-50' },
+            { key: 'packed',    label: 'Packed',     count: stats.packed,    color: 'text-blue-500',   activeColor: 'text-blue-700',   activeBg: 'bg-blue-50'   },
+            { key: 'collected', label: 'Collected',  count: stats.collected, color: 'text-green-500',  activeColor: 'text-green-700',  activeBg: 'bg-green-50'  },
+          ].map(({ key, label, count, color, activeColor, activeBg }) => {
+            const isActive = selectedStatus === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setSelectedStatus(key as any)}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-3 transition-colors ${isActive ? activeBg : ''}`}
+              >
+                <span className={`text-lg font-bold leading-none ${isActive ? activeColor : color}`}>{count}</span>
+                <span className={`text-[10px] font-semibold ${isActive ? activeColor : 'text-gray-400'}`}>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
 
-const OrderCard = memo(({ order, router }: { order: any; router: any }) => {
+const OrderCard = memo(({ order, router, getImage }: { order: any; router: any; getImage: (itemId: string, itemName: string) => string | undefined }) => {
   return (
     <div
       onClick={() => router.push(`/admin/orders/${order.orderId}`)}
@@ -259,8 +255,8 @@ const OrderCard = memo(({ order, router }: { order: any; router: any }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="relative w-12 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-              {PRODUCT_IMAGES[order.items[0].itemId] ? (
-                <img src={PRODUCT_IMAGES[order.items[0].itemId]} alt={order.items[0].itemName} className="w-full h-full object-cover" />
+              {getImage(order.items[0].itemId, order.items[0].itemName) ? (
+                <img src={getImage(order.items[0].itemId, order.items[0].itemName)} alt={order.items[0].itemName} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Package className="w-6 h-6 text-gray-400" />

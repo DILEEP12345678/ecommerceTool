@@ -7,20 +7,6 @@ import { useRouter, useParams } from 'next/navigation';
 import { useUsername, useUserLoaded } from '../../../../components/UserContext';
 import { useEffect } from 'react';
 
-// Product image mapping
-const PRODUCT_IMAGES: Record<string, string> = {
-  'PROD-001': 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop',
-  'PROD-002': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop',
-  'PROD-003': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop',
-  'PROD-004': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop',
-  'PROD-005': 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop',
-  'PROD-006': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=400&fit=crop',
-  'PROD-007': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop',
-  'PROD-008': 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop',
-  'PROD-009': 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&h=400&fit=crop',
-  'PROD-010': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop',
-};
-
 export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -28,10 +14,17 @@ export default function OrderDetailPage() {
   const loaded = useUserLoaded();
   const orderId = params.orderId as string;
 
-  const order = useQuery(
-    api.orders.getByOrderId,
-    orderId ? { orderId } : 'skip'
-  );
+  const order = useQuery(api.orders.getByOrderId, orderId ? { orderId } : 'skip');
+
+  const productRows = useQuery(api.products.list);
+  const productImageById = new Map<string, string>((productRows ?? []).map((p: any) => [p.productId, p.image]));
+  const productImageByName = new Map<string, string>((productRows ?? []).map((p: any) => [p.name.toLowerCase(), p.image]));
+  const getImage = (itemId: string, itemName: string): string | undefined => {
+    const baseId = itemId.split(':')[0];
+    return productImageById.get(baseId)
+      ?? productImageByName.get(itemName.toLowerCase())
+      ?? productImageByName.get(itemName.split('(')[0].trim().toLowerCase());
+  };
 
   useEffect(() => {
     if (!loaded) return;
@@ -61,7 +54,7 @@ export default function OrderDetailPage() {
       {/* Back Button */}
       <button
         onClick={() => router.push('/store/orders')}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors py-2"
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6 transition-colors py-2"
       >
         <ArrowLeft className="w-5 h-5" />
         <span className="text-base font-semibold">Back to My Orders</span>
@@ -198,9 +191,9 @@ export default function OrderDetailPage() {
             >
               <div className="flex items-center gap-4">
                 <div className="relative w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                  {PRODUCT_IMAGES[item.itemId] ? (
+                  {getImage(item.itemId, item.itemName) ? (
                     <img
-                      src={PRODUCT_IMAGES[item.itemId]}
+                      src={getImage(item.itemId, item.itemName)}
                       alt={item.itemName}
                       className="w-full h-full object-cover"
                     />

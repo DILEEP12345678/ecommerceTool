@@ -141,13 +141,13 @@ export default function OrderDetailPage() {
   return (
     <div className="flex flex-col bg-gray-50 h-[calc(100vh-7.5rem)] sm:h-[calc(100vh-3.5rem)]">
       {/* Fixed top bar */}
-      <div className="flex-shrink-0 bg-white shadow-sm px-4 py-2.5 flex items-center gap-3">
+      <div className="flex-shrink-0 bg-white dark:bg-gray-800 shadow-sm px-4 py-2.5 flex items-center gap-3">
         <button
           onClick={() => router.push(order.status === 'confirmed' ? '/collection-point' : `/collection-point?tab=${order.status}`)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors -ml-1 flex-shrink-0"
+          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors -ml-1 flex-shrink-0"
           aria-label="Back to dashboard"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
+          <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

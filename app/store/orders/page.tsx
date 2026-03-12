@@ -1,6 +1,6 @@
 'use client';
 
-import { usePaginatedQuery } from 'convex/react';
+import { usePaginatedQuery, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { ClipboardList, Loader2, Package, ChevronDown, MapPin } from 'lucide-react';
 import { useUsername, useUserLoaded } from '../../../components/UserContext';
@@ -8,20 +8,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, memo } from 'react';
 
 const PAGE_SIZE = 20;
-
-// Product image mapping
-const PRODUCT_IMAGES: Record<string, string> = {
-  'PROD-001': 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop',
-  'PROD-002': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop',
-  'PROD-003': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop',
-  'PROD-004': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop',
-  'PROD-005': 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop',
-  'PROD-006': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=400&fit=crop',
-  'PROD-007': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop',
-  'PROD-008': 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop',
-  'PROD-009': 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&h=400&fit=crop',
-  'PROD-010': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop',
-};
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -32,6 +18,16 @@ export default function OrdersPage() {
     username ? { username } : 'skip',
     { initialNumItems: PAGE_SIZE }
   );
+
+  const productRows = useQuery(api.products.list);
+  const productImageById = new Map<string, string>((productRows ?? []).map((p: any) => [p.productId, p.image]));
+  const productImageByName = new Map<string, string>((productRows ?? []).map((p: any) => [p.name.toLowerCase(), p.image]));
+  const getImage = (itemId: string, itemName: string): string | undefined => {
+    const baseId = itemId.split(':')[0];
+    return productImageById.get(baseId)
+      ?? productImageByName.get(itemName.toLowerCase())
+      ?? productImageByName.get(itemName.split('(')[0].trim().toLowerCase());
+  };
 
   useEffect(() => {
     if (!loaded) return;
@@ -88,7 +84,7 @@ export default function OrdersPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {orders.map((order: any) => (
-          <OrderCard key={order.orderId} order={order} router={router} />
+          <OrderCard key={order.orderId} order={order} router={router} getImage={getImage} />
         ))}
       </div>
 
@@ -113,7 +109,7 @@ export default function OrdersPage() {
   );
 }
 
-const OrderCard = memo(({ order, router }: { order: any; router: any }) => {
+const OrderCard = memo(({ order, router, getImage }: { order: any; router: any; getImage: (itemId: string, itemName: string) => string | undefined }) => {
   return (
     <div
       onClick={() => router.push(`/store/orders/${order.orderId}`)}
@@ -150,9 +146,9 @@ const OrderCard = memo(({ order, router }: { order: any; router: any }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="relative w-12 h-12 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
-              {PRODUCT_IMAGES[order.items[0].itemId] ? (
+              {getImage(order.items[0].itemId, order.items[0].itemName) ? (
                 <img
-                  src={PRODUCT_IMAGES[order.items[0].itemId]}
+                  src={getImage(order.items[0].itemId, order.items[0].itemName)}
                   alt={order.items[0].itemName}
                   className="w-full h-full object-cover"
                 />

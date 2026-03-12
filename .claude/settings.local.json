@@ -12,7 +12,8 @@
       "Bash(cd \"C:/Users/dilee/Documents/project/ecommerce_tool\" && npx next build 2>&1 | head -60)",
       "Bash(cd \"C:/Users/dilee/Documents/project/ecommerce_tool\" && npx next build 2>&1 | grep -E \"\\(DEPRECATION|WARNING|ERROR|error TS|✓|✗|Failed\\)\" | head -20)",
       "Bash(cd \"C:/Users/dilee/Documents/project/ecommerce_tool\" && npx @sentry/wizard@latest -i nextjs --saas --org ecommercetool --project javascript-nextjs 2>&1)",
-      "Bash(npx convex:*)"
+      "Bash(npx convex:*)",
+      "Bash(grep -n \"hover\\\\|ArrowLeft\\\\|back\\\\|Back\\\\|dashboard\\\\|Dashboard\" \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\\\\app\\\\collection-point\\\\orders\\\\[orderId]\\\\page.tsx\" 2>/dev/null | head -30)"
     ]
   }
 }

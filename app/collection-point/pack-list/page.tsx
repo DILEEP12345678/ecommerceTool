@@ -76,7 +76,7 @@ export default function PackListPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24 sm:pb-6">
       {/* Sticky top bar */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700">
+      <div className="sticky top-14 z-10 bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700">
         <button
           onClick={() => router.push('/collection-point')}
           className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors -ml-1 flex-shrink-0"
@@ -124,11 +124,7 @@ export default function PackListPage() {
           <div className="space-y-3">
             {confirmedItemsList.map((product: any) => {
               const imgSrc = getImage(product.baseId, product.productName);
-              const hasVariants = product.variants.length > 1 || product.variants[0]?.variantLabel;
-              const isProductChecked = hasVariants
-                ? product.variants.every((v: any) => checked.has(v.itemId))
-                : checked.has(product.baseId);
-              const checkId = hasVariants ? null : product.baseId;
+              const isProductChecked = product.variants.every((v: any) => checked.has(v.itemId));
 
               return (
                 <div
@@ -136,58 +132,46 @@ export default function PackListPage() {
                   className={`bg-white rounded-2xl shadow-sm overflow-hidden transition-opacity duration-200 ${isProductChecked ? 'opacity-50' : ''}`}
                 >
                   {/* Product header row */}
-                  <div className="flex items-center justify-between px-4 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 cursor-zoom-in"
-                        onClick={() => imgSrc && setZoomed({ src: imgSrc, alt: product.productName })}
-                      >
-                        {imgSrc ? (
-                          <img src={imgSrc} alt={product.productName} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-5 h-5 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className={`text-sm font-bold text-gray-900 ${isProductChecked ? 'line-through text-gray-400' : ''}`}>
-                          {product.productName}
-                        </p>
-                        <p className="text-xs text-gray-400">{product.baseId}</p>
-                      </div>
+                  <div className="flex items-center px-4 py-3.5 gap-3">
+                    <div
+                      className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 cursor-zoom-in"
+                      onClick={() => imgSrc && setZoomed({ src: imgSrc, alt: product.productName })}
+                    >
+                      {imgSrc ? (
+                        <img src={imgSrc} alt={product.productName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
                     </div>
-                    {!hasVariants && (
-                      <span className={`text-lg font-bold ${isProductChecked ? 'text-gray-300' : 'text-primary-600'}`}>
-                        ×{product.totalQuantity}
-                      </span>
-                    )}
+                    <div>
+                      <p className={`text-sm font-bold text-gray-900 ${isProductChecked ? 'line-through text-gray-400' : ''}`}>
+                        {product.productName}
+                      </p>
+                      <p className="text-xs text-gray-400">{product.baseId}</p>
+                    </div>
                   </div>
 
-                  {/* Variant sub-rows */}
-                  {hasVariants && (
-                    <div className="border-t border-gray-200/30 divide-y divide-gray-200/30">
-                      {product.variants.map((v: any) => {
-                        const isVChecked = checked.has(v.itemId);
-                        return (
-                          <div
-                            key={v.itemId}
-                            className="flex items-center justify-between px-4 py-2.5"
-                          >
-                            <div className="flex items-center gap-2 pl-14">
-                              <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
-                              <span className={`text-sm font-medium ${isVChecked ? 'line-through text-gray-300' : 'text-gray-600'}`}>
-                                {v.variantLabel || 'Single'}
-                              </span>
-                            </div>
-                            <span className={`text-sm font-bold ${isVChecked ? 'text-gray-300' : 'text-gray-500'}`}>
-                              ×{v.quantity}
+                  {/* Variant sub-rows — always shown */}
+                  <div className="border-t border-gray-200/30 divide-y divide-gray-200/30">
+                    {product.variants.map((v: any) => {
+                      const isVChecked = checked.has(v.itemId);
+                      return (
+                        <div key={v.itemId} className="flex items-center justify-between px-4 py-2.5">
+                          <div className="flex items-center gap-2 pl-14">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                            <span className={`text-sm font-medium ${isVChecked ? 'line-through text-gray-300' : 'text-gray-600'}`}>
+                              {v.variantLabel || 'Single'}
                             </span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          <span className={`text-sm font-bold ${isVChecked ? 'text-gray-300' : 'text-gray-500'}`}>
+                            ×{v.quantity}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}

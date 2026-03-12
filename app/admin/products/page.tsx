@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { Check, Layers, Loader2, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, Layers, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -138,29 +138,25 @@ export default function ProductsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24 sm:pb-6">
-      {/* Header */}
+      {/* Seed button + count */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Package className="w-6 h-6 text-primary-500" />
-          <h1 className="text-xl font-bold text-gray-900">Products</h1>
+        <div className="flex items-center gap-2">
           {products && (
             <span className="text-xs bg-primary-100 text-primary-700 font-bold px-2 py-0.5 rounded-full">
-              {products.length}
+              {products.length} products
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {!isSeeded && (
-            <button
-              onClick={handleSeed}
-              disabled={seeding}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50"
-            >
-              {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              Seed defaults
-            </button>
-          )}
-        </div>
+        {!isSeeded && (
+          <button
+            onClick={handleSeed}
+            disabled={seeding}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50"
+          >
+            {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            Seed defaults
+          </button>
+        )}
       </div>
 
       {products === undefined ? (
@@ -183,174 +179,245 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* Column headers */}
-          <div className="grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
-            <span>Product</span>
-            <span className="text-right">Price</span>
-            <span>Unit</span>
-            <span>Sensitivity</span>
-            <span>Available</span>
-            <span></span>
-          </div>
 
-          {products.filter(Boolean).map((product: any, idx: number) => {
-            const isEditing = editing?.productId === product.productId;
-            const editingState = isEditing ? editing! : null;
-            const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
-            const available = product.available !== false;
+          {/* ── Mobile card list (hidden on sm+) ── */}
+          <div className="sm:hidden divide-y divide-gray-100">
+            {products.filter(Boolean).map((product: any) => {
+              const isEditing = editing?.productId === product.productId;
+              const editingState = isEditing ? editing! : null;
+              const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
+              const available = product.available !== false;
 
-            return (
-              <div
-                key={product.productId}
-                className={`grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
-                  idx < products.length - 1 ? 'border-b border-gray-100' : ''
-                } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-colors`}
-              >
-                {/* Name */}
-                <div className="min-w-0">
+              return (
+                <div key={product.productId} className={`px-4 py-3 ${isEditing ? 'bg-primary-50' : ''}`}>
                   {isEditing ? (
-                    <input
-                      value={editingState!.name}
-                      onChange={e => setEditing(prev => prev && { ...prev, name: e.target.value })}
-                      className="w-full text-sm font-semibold bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                    />
-                  ) : (
-                    <>
-                      <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>
-                      <p className="text-xs text-gray-400">{product.productId}</p>
-                    </>
-                  )}
-                </div>
-
-                {/* Price */}
-                <div className="text-right">
-                  {isEditing ? (
-                    <div className="relative">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">£</span>
+                    /* Edit form on mobile */
+                    <div className="space-y-2">
                       <input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={(editingState!.price / 100).toFixed(2)}
-                        onChange={e => setEditing(prev => prev && { ...prev, price: Math.round(Number(e.target.value) * 100) })}
-                        className="w-full text-sm text-right bg-white border border-primary-300 rounded-lg pl-5 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        value={editingState!.name}
+                        onChange={e => setEditing(prev => prev && { ...prev, name: e.target.value })}
+                        className="w-full text-sm font-semibold bg-white border border-primary-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        placeholder="Product name"
                       />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">£</span>
+                          <input
+                            type="number" min={0} step={0.01}
+                            value={(editingState!.price / 100).toFixed(2)}
+                            onChange={e => setEditing(prev => prev && { ...prev, price: Math.round(Number(e.target.value) * 100) })}
+                            className="w-full text-sm bg-white border border-primary-300 rounded-lg pl-6 pr-2 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                          />
+                        </div>
+                        <select
+                          value={editingState!.unit}
+                          onChange={e => setEditing(prev => prev && { ...prev, unit: e.target.value })}
+                          className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        >
+                          {UNIT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                      </div>
+                      <select
+                        value={editingState!.sensitivity}
+                        onChange={e => setEditing(prev => prev && { ...prev, sensitivity: e.target.value })}
+                        className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      >
+                        {SENSITIVITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={handleSave} disabled={saving}
+                          className="flex-1 flex items-center justify-center gap-2 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-bold rounded-xl disabled:opacity-50 transition-colors"
+                        >
+                          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditing(null)}
+                          className="px-4 py-2 text-sm font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <span className="text-sm font-semibold text-gray-700">
-                      {product.price != null ? formatPrice(product.price) : '—'}
-                    </span>
+                    /* Normal card view */
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{product.productId}</p>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <span className="text-xs font-semibold text-gray-700">
+                            {product.price != null ? formatPrice(product.price) : '—'}
+                          </span>
+                          <span className="text-xs text-gray-400">·</span>
+                          <span className="text-xs text-gray-500">{sensitivityLabel}</span>
+                          <button
+                            onClick={() => updateMutation({ productId: product.productId, available: !available })}
+                            className={`px-2 py-0.5 rounded-md text-xs font-bold transition-colors ${
+                              available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                            }`}
+                          >
+                            {available ? 'In Stock' : 'Off'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => { setVariantManager(product); setNewVariant({ label: '', price: '', weightG: '' }); }}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
+                          aria-label="Manage variants"
+                        >
+                          <Layers className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditing({ productId: product.productId, name: product.name, price: product.price ?? 0, unit: product.unit ?? 'each', sensitivity: product.sensitivity })}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                          aria-label="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleRemove(product.productId, product.name)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
+              );
+            })}
+          </div>
 
-                {/* Unit */}
-                <div>
-                  {isEditing ? (
-                    <select
-                      value={editingState!.unit}
-                      onChange={e => setEditing(prev => prev && { ...prev, unit: e.target.value })}
-                      className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+          {/* ── Desktop grid (hidden on mobile) ── */}
+          <div className="hidden sm:block">
+            <div className="grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
+              <span>Product</span>
+              <span className="text-right">Price</span>
+              <span>Unit</span>
+              <span>Sensitivity</span>
+              <span>Available</span>
+              <span></span>
+            </div>
+
+            {products.filter(Boolean).map((product: any, idx: number) => {
+              const isEditing = editing?.productId === product.productId;
+              const editingState = isEditing ? editing! : null;
+              const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
+              const available = product.available !== false;
+
+              return (
+                <div
+                  key={product.productId}
+                  className={`grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
+                    idx < products.length - 1 ? 'border-b border-gray-100' : ''
+                  } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-colors`}
+                >
+                  <div className="min-w-0">
+                    {isEditing ? (
+                      <input
+                        value={editingState!.name}
+                        onChange={e => setEditing(prev => prev && { ...prev, name: e.target.value })}
+                        className="w-full text-sm font-semibold bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      />
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>
+                        <p className="text-xs text-gray-400">{product.productId}</p>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="text-right">
+                    {isEditing ? (
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">£</span>
+                        <input
+                          type="number" min={0} step={0.01}
+                          value={(editingState!.price / 100).toFixed(2)}
+                          onChange={e => setEditing(prev => prev && { ...prev, price: Math.round(Number(e.target.value) * 100) })}
+                          className="w-full text-sm text-right bg-white border border-primary-300 rounded-lg pl-5 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-sm font-semibold text-gray-700">
+                        {product.price != null ? formatPrice(product.price) : '—'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    {isEditing ? (
+                      <select
+                        value={editingState!.unit}
+                        onChange={e => setEditing(prev => prev && { ...prev, unit: e.target.value })}
+                        className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      >
+                        {UNIT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    ) : (
+                      <span className="text-sm text-gray-600">
+                        {UNIT_OPTIONS.find(o => o.value === product.unit)?.label ?? product.unit ?? '—'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    {isEditing ? (
+                      <select
+                        value={editingState!.sensitivity}
+                        onChange={e => setEditing(prev => prev && { ...prev, sensitivity: e.target.value })}
+                        className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      >
+                        {SENSITIVITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    ) : (
+                      <span className="text-sm text-gray-600">{sensitivityLabel}</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <button
+                      onClick={() => updateMutation({ productId: product.productId, available: !available })}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                        available ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                      }`}
                     >
-                      {UNIT_OPTIONS.map(o => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className="text-sm text-gray-600">
-                      {UNIT_OPTIONS.find(o => o.value === product.unit)?.label ?? product.unit ?? '—'}
-                    </span>
-                  )}
-                </div>
+                      {available ? 'In Stock' : 'Off'}
+                    </button>
+                  </div>
 
-                {/* Sensitivity */}
-                <div>
-                  {isEditing ? (
-                    <select
-                      value={editingState!.sensitivity}
-                      onChange={e => setEditing(prev => prev && { ...prev, sensitivity: e.target.value })}
-                      className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                    >
-                      {SENSITIVITY_OPTIONS.map(o => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className="text-sm text-gray-600">{sensitivityLabel}</span>
-                  )}
+                  <div className="flex items-center justify-end gap-1">
+                    {isEditing ? (
+                      <>
+                        <button onClick={handleSave} disabled={saving} className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50" aria-label="Save">
+                          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                        </button>
+                        <button onClick={() => setEditing(null)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors" aria-label="Cancel">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setVariantManager(product); setNewVariant({ label: '', price: '', weightG: '' }); }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors" aria-label="Manage variants" title="Manage variants">
+                          <Layers className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setEditing({ productId: product.productId, name: product.name, price: product.price ?? 0, unit: product.unit ?? 'each', sensitivity: product.sensitivity })} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors" aria-label="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleRemove(product.productId, product.name)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors" aria-label="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-
-                {/* Availability */}
-                <div>
-                  <button
-                    onClick={() => updateMutation({ productId: product.productId, available: !available })}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      available
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                    }`}
-                  >
-                    {available ? 'In Stock' : 'Off'}
-                  </button>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-end gap-1">
-                  {isEditing ? (
-                    <>
-                      <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50"
-                        aria-label="Save"
-                      >
-                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => setEditing(null)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
-                        aria-label="Cancel"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => { setVariantManager(product); setNewVariant({ label: '', price: '', weightG: '' }); }}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
-                        aria-label="Manage variants"
-                        title="Manage variants"
-                      >
-                        <Layers className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditing({
-                            productId:   product.productId,
-                            name:        product.name,
-                            price:       product.price ?? 0,
-                            unit:        product.unit ?? 'each',
-                            sensitivity: product.sensitivity,
-                          });
-                        }}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
-                        aria-label="Edit"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleRemove(product.productId, product.name)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
-                        aria-label="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
