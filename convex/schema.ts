@@ -8,8 +8,7 @@ export default defineSchema({
   products: defineTable({
     productId:   v.string(),
     name:        v.string(),
-    image:       v.string(),
-    weightG:     v.number(),             // weight per single unit in grams
+    image:       v.string(), // legacy field — kept optional for existing documents
     sensitivity: v.string(),             // key from SENSITIVITY_GROUPS in lib/bagPlan.ts
     price:       v.optional(v.number()), // price per unit in pence (integer, e.g. 150 = £1.50)
     unit:        v.optional(v.string()), // measurement unit: each | kg | g | litre | dozen | pack | bunch

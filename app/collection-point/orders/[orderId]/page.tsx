@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useUser, useUserLoaded } from '../../../../components/UserContext';
+import { useTheme } from '../../../../components/ThemeProvider';
 import { api } from '../../../../convex/_generated/api';
 import { buildBagPlan, type BagEntry, type ProductMeta } from '../../../../lib/bagPlan';
 
@@ -16,6 +17,7 @@ export default function OrderDetailPage() {
   const user = useUser();
   const loaded = useUserLoaded();
   const orderId = params.orderId as string;
+  const { theme } = useTheme();
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt: string } | null>(null);
   const [packedQty, setPackedQty] = useState<Map<number, number>>(() => {
     if (typeof window === 'undefined') return new Map();
@@ -63,9 +65,12 @@ export default function OrderDetailPage() {
   // Also add variant-keyed entries so PROD-005:12 Pack uses the variant's weightG
   const productMap = new Map<string, ProductMeta>();
   for (const p of (productRows ?? []) as any[]) {
-    productMap.set(p.productId, { weightG: p.weightG, sensitivity: p.sensitivity });
     for (const v of (p.variants ?? [])) {
       productMap.set(`${p.productId}:${v.label}`, { weightG: v.weightG, sensitivity: p.sensitivity });
+    }
+    // Also register base productId using first variant weight as fallback
+    if (p.variants?.length) {
+      productMap.set(p.productId, { weightG: p.variants[0].weightG, sensitivity: p.sensitivity });
     }
   }
 
@@ -317,7 +322,7 @@ export default function OrderDetailPage() {
                               maxWidth: '24px',
                               borderRadius: '50%',
                               border: `2px solid ${color}`,
-                              backgroundColor: isFilled ? color : '#fff',
+                              backgroundColor: isFilled ? color : theme === 'dark' ? '#1f2937' : '#fff',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -411,7 +416,7 @@ export default function OrderDetailPage() {
           onClick={() => setZoomedImage(null)}
         >
           <div
-            className="relative max-w-lg w-full animate-fade-in-scale"
+            className="relative max-w-lg w-full animate-pop-in"
             onClick={e => e.stopPropagation()}
           >
             <img

@@ -21,7 +21,7 @@ const BAG_CAPACITY_G = 6000;
 
 // Fallback metadata for products not yet in Convex (e.g. before first seed)
 const FALLBACK_WEIGHT_G = 200;
-const FALLBACK_SENSITIVITY = 'general';
+const FALLBACK_SENSITIVITY = 'non-sensitive';
 
 export type ProductMeta = { weightG: number; sensitivity: string };
 
@@ -57,14 +57,14 @@ export function buildBagPlan(items: any[], productMap: Map<string, ProductMeta>)
     }
   }
 
-  // Sort: non-sensitive first (bottom), sensitive last (top)
-  // Within non-sensitive: heaviest first (most stable at bottom)
-  // Within sensitive: lightest first (bottom of sensitive layer), heaviest/most fragile last (top)
+  // Sort: non-sensitive first (bottom), sensitive middle, extreme-sensitive last (top)
+  // Within non-sensitive: heaviest first — most stable base at bottom of bag
+  // Within sensitive + extreme-sensitive: lightest first — heaviest/most fragile ends up on top
   units.sort((a, b) => {
     const packDiff = (PACK_ORDER[a.group.key] ?? 8) - (PACK_ORDER[b.group.key] ?? 8);
     if (packDiff !== 0) return packDiff;
-    if (a.group.key === 'sensitive') return a.weightG - b.weightG; // ascending: lighter first, heavier (fragile) on top
-    return b.weightG - a.weightG; // descending: heavier first at bottom
+    if (a.group.key === 'non-sensitive') return b.weightG - a.weightG; // descending: heavy at bottom
+    return a.weightG - b.weightG; // ascending: light first, fragile on top
   });
 
   // Next-Fit: fill current bag, only open next when item won't fit

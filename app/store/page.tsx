@@ -290,7 +290,7 @@ export default function HomePage() {
       {/* Checkout modal */}
       {showCheckout && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up sm:animate-pop-in">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Confirm Your Order</h2>
 
             <div className="mb-4 p-4 bg-primary-50 rounded-xl border border-primary-200 flex items-center gap-2">

@@ -27,22 +27,28 @@ module.exports = {
       },
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0' },
+          '0%':   { opacity: '0' },
           '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { transform: 'translateY(100%)' },
-          '100%': { transform: 'translateY(0)' },
+          '0%':   { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)',    opacity: '1' },
         },
         fadeInScale: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
+          '0%':   { opacity: '0', transform: 'scale(0.96) translateY(4px)' },
+          '100%': { opacity: '1', transform: 'scale(1)    translateY(0)'   },
+        },
+        popIn: {
+          '0%':   { opacity: '0', transform: 'scale(0.85)' },
+          '60%':  {               transform: 'scale(1.03)' },
+          '100%': { opacity: '1', transform: 'scale(1)'    },
         },
       },
       animation: {
-        'fade-in': 'fadeIn 0.2s ease-out',
-        'slide-up': 'slideUp 0.25s ease-out',
-        'fade-in-scale': 'fadeInScale 0.2s ease-out',
+        'fade-in':       'fadeIn 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+        'slide-up':      'slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+        'fade-in-scale': 'fadeInScale 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'pop-in':        'popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
     },
   },

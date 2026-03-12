@@ -5,7 +5,7 @@ import { mutation, query } from "./_generated/server";
 // Used only by the `seed` mutation — after seeding, all data lives in Convex.
 const DEFAULT_PRODUCTS = [
   {
-    productId: "PROD-001", name: "Fresh Apples", weightG: 180, sensitivity: "non-sensitive", price: 120, unit: "each",
+    productId: "PROD-001", name: "Fresh Apples", sensitivity: "non-sensitive", price: 120, unit: "each",
     image: "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop",
     variants: [
       { label: "1 Apple",  price: 120, weightG: 180  },
@@ -14,7 +14,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-002", name: "Bananas", weightG: 120, sensitivity: "non-sensitive", price: 20, unit: "each",
+    productId: "PROD-002", name: "Bananas", sensitivity: "non-sensitive", price: 20, unit: "each",
     image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop",
     variants: [
       { label: "Single",   price: 20,  weightG: 120  },
@@ -23,7 +23,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-003", name: "Milk", weightG: 1030, sensitivity: "sensitive", price: 110, unit: "litre",
+    productId: "PROD-003", name: "Milk", sensitivity: "sensitive", price: 110, unit: "litre",
     image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop",
     variants: [
       { label: "1 Litre",  price: 110, weightG: 1030 },
@@ -32,7 +32,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-004", name: "Bread", weightG: 400, sensitivity: "sensitive", price: 90, unit: "each",
+    productId: "PROD-004", name: "Bread", sensitivity: "sensitive", price: 90, unit: "each",
     image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop",
     variants: [
       { label: "400g Loaf", price: 90,  weightG: 400 },
@@ -40,7 +40,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-005", name: "Eggs", weightG: 350, sensitivity: "sensitive", price: 150, unit: "pack",
+    productId: "PROD-005", name: "Eggs", sensitivity: "sensitive", price: 150, unit: "pack",
     image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop",
     variants: [
       { label: "6 Pack",  price: 150, weightG: 350 },
@@ -48,7 +48,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-006", name: "Tomatoes", weightG: 150, sensitivity: "sensitive", price: 90, unit: "each",
+    productId: "PROD-006", name: "Tomatoes", sensitivity: "sensitive", price: 90, unit: "each",
     image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=400&fit=crop",
     variants: [
       { label: "Single",       price: 90,  weightG: 150 },
@@ -57,7 +57,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-007", name: "Carrots", weightG: 80, sensitivity: "non-sensitive", price: 60, unit: "each",
+    productId: "PROD-007", name: "Carrots", sensitivity: "non-sensitive", price: 60, unit: "each",
     image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop",
     variants: [
       { label: "Single",  price: 60,  weightG: 80   },
@@ -66,7 +66,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-008", name: "Cheese", weightG: 200, sensitivity: "sensitive", price: 220, unit: "pack",
+    productId: "PROD-008", name: "Cheese", sensitivity: "sensitive", price: 220, unit: "pack",
     image: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop",
     variants: [
       { label: "200g", price: 220, weightG: 200 },
@@ -75,7 +75,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-009", name: "Chicken", weightG: 500, sensitivity: "sensitive", price: 250, unit: "kg",
+    productId: "PROD-009", name: "Chicken", sensitivity: "sensitive", price: 250, unit: "kg",
     image: "https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&h=400&fit=crop",
     variants: [
       { label: "500g",  price: 250, weightG: 500  },
@@ -84,7 +84,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-010", name: "Rice", weightG: 500, sensitivity: "non-sensitive", price: 100, unit: "kg",
+    productId: "PROD-010", name: "Rice", sensitivity: "non-sensitive", price: 100, unit: "kg",
     image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop",
     variants: [
       { label: "500g", price: 100, weightG: 500  },
@@ -122,7 +122,6 @@ export const upsert = mutation({
     productId:   v.string(),
     name:        v.string(),
     image:       v.string(),
-    weightG:     v.number(),
     sensitivity: v.string(),
     price:       v.optional(v.number()),
     unit:        v.optional(v.string()),
@@ -138,7 +137,6 @@ export const upsert = mutation({
       await ctx.db.patch(existing._id, {
         name:        args.name,
         image:       args.image,
-        weightG:     args.weightG,
         sensitivity: args.sensitivity,
         available:   args.available ?? true,
       });
@@ -151,7 +149,6 @@ export const upsert = mutation({
 export const update = mutation({
   args: {
     productId:   v.string(),
-    weightG:     v.optional(v.number()),
     sensitivity: v.optional(v.string()),
     price:       v.optional(v.number()),
     unit:        v.optional(v.string()),
@@ -200,7 +197,6 @@ export const seed = mutation({
         await ctx.db.patch(existing._id, {
           name:        p.name,
           image:       p.image,
-          weightG:     p.weightG,
           sensitivity: p.sensitivity,
           price:       p.price,
           unit:        p.unit,

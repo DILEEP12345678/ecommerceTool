@@ -103,8 +103,10 @@ export default function Navbar() {
 
       {/* ── SLIDE-OUT DRAWER ───────────────────────────────── */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-gray-800 z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-gray-800 z-50 shadow-2xl flex flex-col will-change-transform ${
+          isOpen
+            ? 'translate-x-0 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.32,0.72,0,1)]'
+            : 'translate-x-full transition-transform duration-250 [transition-timing-function:cubic-bezier(0.32,0.72,0,1)]'
         }`}
       >
         {/* Drawer header */}

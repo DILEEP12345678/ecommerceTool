@@ -9,14 +9,27 @@ import toast from 'react-hot-toast';
 import { useUser, useUserLoaded } from '../../../components/UserContext';
 import { SENSITIVITY_GROUPS } from '../../../lib/bagPlan';
 
+/** Parse a variant label and return an estimated weight in grams, or '' if not parseable. */
+function guessWeightFromLabel(label: string): string {
+  const s = label.trim().toLowerCase();
+  // Match patterns like "500g", "1kg", "1.5 kg", "2 litre", "2l", "4 pint"
+  const kg    = s.match(/^([\d.]+)\s*kg$/);
+  const g     = s.match(/^([\d.]+)\s*g$/);
+  const litre = s.match(/^([\d.]+)\s*(litre|liter|l)s?$/);
+  const pint  = s.match(/^([\d.]+)\s*pints?$/);
+  if (kg)    return String(Math.round(parseFloat(kg[1])    * 1000));
+  if (g)     return String(Math.round(parseFloat(g[1])));
+  if (litre) return String(Math.round(parseFloat(litre[1]) * 1000));
+  if (pint)  return String(Math.round(parseFloat(pint[1])  * 568));
+  return '';
+}
+
 const SENSITIVITY_OPTIONS = SENSITIVITY_GROUPS.map(g => ({
   value: g.key,
   label: `${g.emoji} ${g.label}`,
 }));
 
-type WeightUnit = 'g' | 'kg';
-
-export const UNIT_OPTIONS = [
+const UNIT_OPTIONS = [
   { value: 'each',   label: 'Each'        },
   { value: 'dozen',  label: 'Dozen (×12)' },
   { value: 'litre',  label: 'Litre'       },
@@ -29,22 +42,10 @@ export const UNIT_OPTIONS = [
 type EditState = {
   productId: string;
   name: string;
-  weightG: number;
-  weightDisplay: number;
-  weightUnit: WeightUnit;
   price: number;
   unit: string;
   sensitivity: string;
 };
-
-function toGrams(value: number, unit: WeightUnit) {
-  return unit === 'kg' ? Math.round(value * 1000) : Math.round(value);
-}
-
-function displayWeight(weightG: number): { value: number; unit: WeightUnit } {
-  if (weightG >= 1000) return { value: weightG / 1000, unit: 'kg' };
-  return { value: weightG, unit: 'g' };
-}
 
 function formatPrice(pence: number) {
   return `£${(pence / 100).toFixed(2)}`;
@@ -89,7 +90,6 @@ export default function ProductsPage() {
       await updateMutation({
         productId:   editing.productId,
         name:        editing.name,
-        weightG:     toGrams(editing.weightDisplay, editing.weightUnit),
         sensitivity: editing.sensitivity,
         price:       editing.price,
         unit:        editing.unit,
@@ -184,9 +184,8 @@ export default function ProductsPage() {
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           {/* Column headers */}
-          <div className="grid grid-cols-[1fr_130px_80px_110px_160px_90px_60px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
+          <div className="grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
             <span>Product</span>
-            <span className="text-right">Weight</span>
             <span className="text-right">Price</span>
             <span>Unit</span>
             <span>Sensitivity</span>
@@ -197,13 +196,12 @@ export default function ProductsPage() {
           {products.filter(Boolean).map((product: any, idx: number) => {
             const isEditing = editing?.productId === product.productId;
             const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
-            const { value: wVal, unit: wUnit } = displayWeight(product.weightG ?? 0);
             const available = product.available !== false;
 
             return (
               <div
                 key={product.productId}
-                className={`grid grid-cols-[1fr_130px_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
+                className={`grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
                   idx < products.length - 1 ? 'border-b border-gray-100' : ''
                 } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-colors`}
               >
@@ -220,49 +218,6 @@ export default function ProductsPage() {
                       <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>
                       <p className="text-xs text-gray-400">{product.productId}</p>
                     </>
-                  )}
-                </div>
-
-                {/* Weight */}
-                <div className="text-right">
-                  {isEditing ? (
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        min={0.001}
-                        step={editing.weightUnit === 'kg' ? 0.1 : 1}
-                        value={editing.weightDisplay}
-                        onChange={e => {
-                          const v = Number(e.target.value);
-                          setEditing(prev => prev && { ...prev, weightDisplay: v, weightG: toGrams(v, prev.weightUnit) });
-                        }}
-                        className="w-16 text-sm text-right bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                      />
-                      <div className="flex rounded-lg overflow-hidden border border-primary-300 flex-shrink-0">
-                        {(['g', 'kg'] as WeightUnit[]).map(u => (
-                          <button
-                            key={u}
-                            type="button"
-                            onClick={() => setEditing(prev => {
-                              if (!prev) return prev;
-                              const newDisplay = u === 'kg' ? prev.weightG / 1000 : prev.weightG;
-                              return { ...prev, weightUnit: u, weightDisplay: newDisplay };
-                            })}
-                            className={`px-1.5 py-1 text-xs font-bold transition-colors ${
-                              editing.weightUnit === u
-                                ? 'bg-primary-500 text-white'
-                                : 'bg-white text-gray-500 hover:bg-gray-50'
-                            }`}
-                          >
-                            {u}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-sm font-semibold text-gray-700">
-                      {wVal}{wUnit}
-                    </span>
                   )}
                 </div>
 
@@ -369,16 +324,12 @@ export default function ProductsPage() {
                       </button>
                       <button
                         onClick={() => {
-                          const { value, unit } = displayWeight(product.weightG ?? 0);
                           setEditing({
-                            productId:     product.productId,
-                            name:          product.name,
-                            weightG:       product.weightG ?? 0,
-                            weightDisplay: value,
-                            weightUnit:    unit,
-                            price:         product.price ?? 0,
-                            unit:          product.unit ?? 'each',
-                            sensitivity:   product.sensitivity,
+                            productId:   product.productId,
+                            name:        product.name,
+                            price:       product.price ?? 0,
+                            unit:        product.unit ?? 'each',
+                            sensitivity: product.sensitivity,
                           });
                         }}
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
@@ -403,13 +354,13 @@ export default function ProductsPage() {
       )}
 
       <p className="text-xs text-gray-400 mt-4 text-center">
-        Weight and sensitivity settings are used to calculate the bag plan on each order.
+        Sensitivity and variant weights are used to calculate the bag plan on each order.
       </p>
 
       {/* Variant Manager Modal */}
       {variantManager && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setVariantManager(null)}>
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up sm:animate-pop-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-base font-bold text-gray-900">{variantManager.name}</h2>
@@ -447,7 +398,11 @@ export default function ProductsPage() {
                   <input
                     placeholder="Label (e.g. 500g, 1kg, 6 pack)"
                     value={newVariant.label}
-                    onChange={e => setNewVariant(p => ({ ...p, label: e.target.value }))}
+                    onChange={e => {
+                      const label = e.target.value;
+                      const guessed = guessWeightFromLabel(label);
+                      setNewVariant(p => ({ ...p, label, weightG: guessed || p.weightG }));
+                    }}
                     className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </div>
