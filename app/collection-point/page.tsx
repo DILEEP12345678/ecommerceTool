@@ -6,26 +6,14 @@ import {
   Loader2, Package, User, MapPin,
   CheckCircle, ChevronRight, ChevronDown,
 } from 'lucide-react';
+
 import toast from 'react-hot-toast';
-import { buildBagPlan } from '../../lib/bagPlan';
 import { useCollectionPoint, useUser, useUserLoaded } from '../../components/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, memo, Suspense } from 'react';
 
 const PAGE_SIZE = 40;
 
-const PRODUCT_IMAGES: Record<string, string> = {
-  'PROD-001': 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop',
-  'PROD-002': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop',
-  'PROD-003': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop',
-  'PROD-004': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop',
-  'PROD-005': 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop',
-  'PROD-006': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=400&fit=crop',
-  'PROD-007': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=400&fit=crop',
-  'PROD-008': 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop',
-  'PROD-009': 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&h=400&fit=crop',
-  'PROD-010': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop',
-};
 
 export default function CollectionPointPage() {
   return (
@@ -75,6 +63,16 @@ function CollectionPointContent() {
     api.orders.getStatusCounts,
     collectionPoint ? { collectionPoint } : 'skip'
   );
+
+  const productRows = useQuery(api.products.list);
+  const productImageById = new Map<string, string>(
+    (productRows ?? []).map((p: any) => [p.productId, p.image])
+  );
+  const productImageByName = new Map<string, string>(
+    (productRows ?? []).map((p: any) => [p.name.toLowerCase(), p.image])
+  );
+  const productImageMap = { byId: productImageById, byName: productImageByName };
+
 
 
   const handleMarkOne = async (orderId: string) => {
@@ -203,6 +201,7 @@ function CollectionPointContent() {
                   order={order}
                   router={router}
                   onMarkCollected={handleMarkOne}
+                  productImageMap={productImageMap}
                 />
               ))}
             </div>
@@ -253,13 +252,14 @@ function CollectionPointContent() {
 }
 
 // ── ORDER CARD ───────────────────────────────────────────
-const OrderCard = memo(({ order, router, onMarkCollected }: {
+const OrderCard = memo(({ order, router, onMarkCollected, productImageMap }: {
   order: any;
   router: any;
   onMarkCollected: (orderId: string) => void;
+  productImageMap: { byId: Map<string, string>; byName: Map<string, string> };
 }) => {
   const isPacked = order.status === 'packed';
-  const previewItems = order.items.slice(0, 3);
+  const previewItems = order.items.slice(0, 2);
   const extraCount = order.items.length - previewItems.length;
 
   const [timeAgo, setTimeAgo] = useState('');
@@ -299,13 +299,13 @@ const OrderCard = memo(({ order, router, onMarkCollected }: {
   return (
     <div
       onClick={() => router.push(`/collection-point/orders/${order.orderId}`)}
-      className={`bg-white rounded-2xl shadow-sm border transition-all cursor-pointer active:scale-[0.99] overflow-hidden ${
+      className={`bg-white rounded-2xl shadow-sm border transition-all cursor-pointer active:scale-[0.99] overflow-hidden flex flex-col ${
         packingPct !== null && isConfirmed
           ? 'border-orange-200'
           : 'border-transparent hover:shadow-md'
       }`}
     >
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         {/* Row 1: order # + status + customer + time */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
@@ -326,66 +326,46 @@ const OrderCard = memo(({ order, router, onMarkCollected }: {
           <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
         </div>
 
-        {/* Row 2: product image strip + item name */}
-        <div className="flex items-center gap-3">
-          <div className="flex gap-2">
-            {previewItems.map((item: any, i: number) => (
-              <div key={i} className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
-                {PRODUCT_IMAGES[item.itemId] ? (
-                  <img
-                    src={PRODUCT_IMAGES[item.itemId]}
-                    alt={item.itemName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="w-5 h-5 text-gray-400" />
-                  </div>
-                )}
+        {/* Row 2: item list */}
+        <div className="space-y-1.5">
+          {previewItems.map((item: any, i: number) => {
+            const baseId = item.itemId.split(':')[0];
+            const imgSrc = productImageMap.byId.get(baseId)
+              ?? productImageMap.byName.get(item.itemName.toLowerCase())
+              ?? productImageMap.byName.get(item.itemName.split('(')[0].trim().toLowerCase());
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-md bg-gray-100 overflow-hidden flex-shrink-0">
+                  {imgSrc ? (
+                    <img src={imgSrc} alt={item.itemName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-4 h-4 text-gray-300" />
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm text-gray-700 flex-1 truncate">{item.itemName}</span>
+                <span className="text-xs font-semibold text-gray-400 flex-shrink-0">×{item.quantity}</span>
               </div>
-            ))}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 truncate">
-              {order.items[0].itemName}
-              {order.items[0].quantity > 1 && (
-                <span className="text-gray-400 font-normal"> ×{order.items[0].quantity}</span>
-              )}
-            </p>
-            {extraCount > 0 && (
-              <p className="text-xs text-primary-600 font-semibold mt-0.5">+{extraCount} more item{extraCount > 1 ? 's' : ''}</p>
-            )}
-          </div>
+            );
+          })}
+          {extraCount > 0 && (
+            <p className="text-xs text-primary-600 font-semibold pl-10">+{extraCount} more item{extraCount > 1 ? 's' : ''}</p>
+          )}
         </div>
 
-        {/* Bag plan summary — confirmed orders only */}
-        {isConfirmed && (() => {
-          const bags = buildBagPlan(order.items);
-          return (
-            <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-gray-400 font-medium">{bags.length} bag{bags.length !== 1 ? 's' : ''}:</span>
-              {bags.map((bag, i) => (
-                <span
-                  key={i}
-                  className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${bag.group.color} ${bag.group.border} text-gray-700`}
-                >
-                  <span>{bag.group.emoji}</span>
-                  <span>×{bag.items.reduce((s, it) => s + it.quantity, 0)}</span>
-                </span>
-              ))}
-            </div>
-          );
-        })()}
 
         {/* Mark as Collected button — packed orders only */}
         {isPacked && (
+          <div className="mt-auto pt-4">
           <button
             onClick={e => { e.stopPropagation(); onMarkCollected(order.orderId); }}
-            className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm"
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm"
           >
             <CheckCircle className="w-4 h-4" />
             Mark as Collected
           </button>
+          </div>
         )}
       </div>
 

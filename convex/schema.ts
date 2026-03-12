@@ -1,7 +1,26 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+// Sensitivity group keys — must match SENSITIVITY_GROUPS in lib/bagPlan.ts
+// Pack order (bottom → top): dry → general → produce → delicate-produce → bakery → chilled → fragile → frozen
+
 export default defineSchema({
+  products: defineTable({
+    productId:   v.string(),
+    name:        v.string(),
+    image:       v.string(),
+    weightG:     v.number(),             // weight per single unit in grams
+    sensitivity: v.string(),             // key from SENSITIVITY_GROUPS in lib/bagPlan.ts
+    price:       v.optional(v.number()), // price per unit in pence (integer, e.g. 150 = £1.50)
+    unit:        v.optional(v.string()), // measurement unit: each | kg | g | litre | dozen | pack | bunch
+    available:   v.optional(v.boolean()),
+    variants:    v.optional(v.array(v.object({
+      label:   v.string(),  // e.g. "500g", "1kg", "6 pack"
+      price:   v.number(),  // pence
+      weightG: v.number(),
+    }))),
+  }).index("by_product_id", ["productId"]),
+
   users: defineTable({
     email: v.string(),
     name: v.string(),

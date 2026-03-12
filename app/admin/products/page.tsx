@@ -1,0 +1,485 @@
+'use client';
+
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { Check, Layers, Loader2, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useUser, useUserLoaded } from '../../../components/UserContext';
+import { SENSITIVITY_GROUPS } from '../../../lib/bagPlan';
+
+const SENSITIVITY_OPTIONS = SENSITIVITY_GROUPS.map(g => ({
+  value: g.key,
+  label: `${g.emoji} ${g.label}`,
+}));
+
+type WeightUnit = 'g' | 'kg';
+
+export const UNIT_OPTIONS = [
+  { value: 'each',   label: 'Each'        },
+  { value: 'dozen',  label: 'Dozen (×12)' },
+  { value: 'litre',  label: 'Litre'       },
+  { value: 'kg',     label: 'Kilogram'    },
+  { value: 'g',      label: 'Gram'        },
+  { value: 'pack',   label: 'Pack'        },
+  { value: 'bunch',  label: 'Bunch'       },
+];
+
+type EditState = {
+  productId: string;
+  name: string;
+  weightG: number;
+  weightDisplay: number;
+  weightUnit: WeightUnit;
+  price: number;
+  unit: string;
+  sensitivity: string;
+};
+
+function toGrams(value: number, unit: WeightUnit) {
+  return unit === 'kg' ? Math.round(value * 1000) : Math.round(value);
+}
+
+function displayWeight(weightG: number): { value: number; unit: WeightUnit } {
+  if (weightG >= 1000) return { value: weightG / 1000, unit: 'kg' };
+  return { value: weightG, unit: 'g' };
+}
+
+function formatPrice(pence: number) {
+  return `£${(pence / 100).toFixed(2)}`;
+}
+
+export default function ProductsPage() {
+  const router = useRouter();
+  const user = useUser();
+  const loaded = useUserLoaded();
+  const products = useQuery(api.products.list);
+  const seedMutation = useMutation(api.products.seed);
+  const updateMutation = useMutation(api.products.update);
+  const removeMutation = useMutation(api.products.remove);
+
+  const [editing, setEditing] = useState<EditState | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [variantManager, setVariantManager] = useState<any | null>(null); // product being edited for variants
+  const [newVariant, setNewVariant] = useState({ label: '', price: '', weightG: '' });
+
+  useEffect(() => {
+    if (!loaded) return;
+    if (!user || user.role !== 'admin') router.push('/login');
+  }, [user, router, loaded]);
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    try {
+      await seedMutation();
+      toast.success('Products seeded successfully');
+    } catch {
+      toast.error('Failed to seed products');
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      await updateMutation({
+        productId:   editing.productId,
+        name:        editing.name,
+        weightG:     toGrams(editing.weightDisplay, editing.weightUnit),
+        sensitivity: editing.sensitivity,
+        price:       editing.price,
+        unit:        editing.unit,
+      });
+      toast.success('Product updated');
+      setEditing(null);
+    } catch {
+      toast.error('Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddVariant = async () => {
+    if (!variantManager || !newVariant.label || !newVariant.price || !newVariant.weightG) return;
+    const existing: any[] = variantManager.variants ?? [];
+    const updated = [...existing, {
+      label:   newVariant.label.trim(),
+      price:   Math.round(Number(newVariant.price) * 100),
+      weightG: Number(newVariant.weightG),
+    }];
+    await updateMutation({ productId: variantManager.productId, variants: updated });
+    setVariantManager((prev: any) => ({ ...prev, variants: updated }));
+    setNewVariant({ label: '', price: '', weightG: '' });
+  };
+
+  const handleRemoveVariant = async (label: string) => {
+    if (!variantManager) return;
+    const updated = (variantManager.variants ?? []).filter((v: any) => v.label !== label);
+    await updateMutation({ productId: variantManager.productId, variants: updated });
+    setVariantManager((prev: any) => ({ ...prev, variants: updated }));
+  };
+
+  const handleRemove = async (productId: string, name: string) => {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      await removeMutation({ productId });
+      toast.success(`"${name}" removed`);
+    } catch {
+      toast.error('Failed to remove product');
+    }
+  };
+
+  // Real DB rows have _creationTime set by Convex; fallback objects don't
+  const isSeeded = (products ?? []).some((p: any) => p._creationTime != null);
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-6 pb-24 sm:pb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Package className="w-6 h-6 text-primary-500" />
+          <h1 className="text-xl font-bold text-gray-900">Products</h1>
+          {products && (
+            <span className="text-xs bg-primary-100 text-primary-700 font-bold px-2 py-0.5 rounded-full">
+              {products.length}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {!isSeeded && (
+            <button
+              onClick={handleSeed}
+              disabled={seeding}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-colors disabled:opacity-50"
+            >
+              {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Seed defaults
+            </button>
+          )}
+        </div>
+      </div>
+
+      {products === undefined ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="w-7 h-7 text-primary-400 animate-spin" />
+        </div>
+      ) : products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <Package className="w-12 h-12 text-gray-200 mb-3" />
+          <p className="text-sm font-semibold text-gray-500 mb-1">No products yet</p>
+          <p className="text-xs text-gray-400 mb-4">Seed the default catalogue to get started</p>
+          <button
+            onClick={handleSeed}
+            disabled={seeding}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white text-sm font-bold rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50"
+          >
+            {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            Seed default products
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Column headers */}
+          <div className="grid grid-cols-[1fr_130px_80px_110px_160px_90px_60px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
+            <span>Product</span>
+            <span className="text-right">Weight</span>
+            <span className="text-right">Price</span>
+            <span>Unit</span>
+            <span>Sensitivity</span>
+            <span>Available</span>
+            <span></span>
+          </div>
+
+          {products.filter(Boolean).map((product: any, idx: number) => {
+            const isEditing = editing?.productId === product.productId;
+            const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
+            const { value: wVal, unit: wUnit } = displayWeight(product.weightG ?? 0);
+            const available = product.available !== false;
+
+            return (
+              <div
+                key={product.productId}
+                className={`grid grid-cols-[1fr_130px_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
+                  idx < products.length - 1 ? 'border-b border-gray-100' : ''
+                } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-colors`}
+              >
+                {/* Name */}
+                <div className="min-w-0">
+                  {isEditing ? (
+                    <input
+                      value={editing.name}
+                      onChange={e => setEditing(prev => prev && { ...prev, name: e.target.value })}
+                      className="w-full text-sm font-semibold bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    />
+                  ) : (
+                    <>
+                      <p className="text-sm font-semibold text-gray-900 truncate">{product.name}</p>
+                      <p className="text-xs text-gray-400">{product.productId}</p>
+                    </>
+                  )}
+                </div>
+
+                {/* Weight */}
+                <div className="text-right">
+                  {isEditing ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={0.001}
+                        step={editing.weightUnit === 'kg' ? 0.1 : 1}
+                        value={editing.weightDisplay}
+                        onChange={e => {
+                          const v = Number(e.target.value);
+                          setEditing(prev => prev && { ...prev, weightDisplay: v, weightG: toGrams(v, prev.weightUnit) });
+                        }}
+                        className="w-16 text-sm text-right bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      />
+                      <div className="flex rounded-lg overflow-hidden border border-primary-300 flex-shrink-0">
+                        {(['g', 'kg'] as WeightUnit[]).map(u => (
+                          <button
+                            key={u}
+                            type="button"
+                            onClick={() => setEditing(prev => {
+                              if (!prev) return prev;
+                              const newDisplay = u === 'kg' ? prev.weightG / 1000 : prev.weightG;
+                              return { ...prev, weightUnit: u, weightDisplay: newDisplay };
+                            })}
+                            className={`px-1.5 py-1 text-xs font-bold transition-colors ${
+                              editing.weightUnit === u
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                            }`}
+                          >
+                            {u}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-sm font-semibold text-gray-700">
+                      {wVal}{wUnit}
+                    </span>
+                  )}
+                </div>
+
+                {/* Price */}
+                <div className="text-right">
+                  {isEditing ? (
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">£</span>
+                      <input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        value={(editing.price / 100).toFixed(2)}
+                        onChange={e => setEditing(prev => prev && { ...prev, price: Math.round(Number(e.target.value) * 100) })}
+                        className="w-full text-sm text-right bg-white border border-primary-300 rounded-lg pl-5 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-sm font-semibold text-gray-700">
+                      {product.price != null ? formatPrice(product.price) : '—'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Unit */}
+                <div>
+                  {isEditing ? (
+                    <select
+                      value={editing.unit}
+                      onChange={e => setEditing(prev => prev && { ...prev, unit: e.target.value })}
+                      className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    >
+                      {UNIT_OPTIONS.map(o => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-sm text-gray-600">
+                      {UNIT_OPTIONS.find(o => o.value === product.unit)?.label ?? product.unit ?? '—'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Sensitivity */}
+                <div>
+                  {isEditing ? (
+                    <select
+                      value={editing.sensitivity}
+                      onChange={e => setEditing(prev => prev && { ...prev, sensitivity: e.target.value })}
+                      className="w-full text-sm bg-white border border-primary-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    >
+                      {SENSITIVITY_OPTIONS.map(o => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-sm text-gray-600">{sensitivityLabel}</span>
+                  )}
+                </div>
+
+                {/* Availability */}
+                <div>
+                  <button
+                    onClick={() => updateMutation({ productId: product.productId, available: !available })}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                      available
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >
+                    {available ? 'In Stock' : 'Off'}
+                  </button>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-1">
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50"
+                        aria-label="Save"
+                      >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => setEditing(null)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+                        aria-label="Cancel"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setVariantManager(product); setNewVariant({ label: '', price: '', weightG: '' }); }}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
+                        aria-label="Manage variants"
+                        title="Manage variants"
+                      >
+                        <Layers className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          const { value, unit } = displayWeight(product.weightG ?? 0);
+                          setEditing({
+                            productId:     product.productId,
+                            name:          product.name,
+                            weightG:       product.weightG ?? 0,
+                            weightDisplay: value,
+                            weightUnit:    unit,
+                            price:         product.price ?? 0,
+                            unit:          product.unit ?? 'each',
+                            sensitivity:   product.sensitivity,
+                          });
+                        }}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                        aria-label="Edit"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRemove(product.productId, product.name)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="text-xs text-gray-400 mt-4 text-center">
+        Weight and sensitivity settings are used to calculate the bag plan on each order.
+      </p>
+
+      {/* Variant Manager Modal */}
+      {variantManager && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setVariantManager(null)}>
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">{variantManager.name}</h2>
+                <p className="text-xs text-gray-500">Manage size / quantity variants</p>
+              </div>
+              <button onClick={() => setVariantManager(null)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Existing variants */}
+            {(variantManager.variants ?? []).length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No variants yet</p>
+            ) : (
+              <div className="space-y-2 mb-4">
+                {(variantManager.variants ?? []).map((v: any) => (
+                  <div key={v.label} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                    <div>
+                      <span className="text-sm font-semibold text-gray-900">{v.label}</span>
+                      <span className="text-xs text-gray-500 ml-2">£{(v.price / 100).toFixed(2)} · {v.weightG}g</span>
+                    </div>
+                    <button onClick={() => handleRemoveVariant(v.label)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add variant form */}
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Add variant</p>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="col-span-3">
+                  <input
+                    placeholder="Label (e.g. 500g, 1kg, 6 pack)"
+                    value={newVariant.label}
+                    onChange={e => setNewVariant(p => ({ ...p, label: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  />
+                </div>
+                <div className="relative">
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">£</span>
+                  <input
+                    type="number" min={0} step={0.01} placeholder="Price"
+                    value={newVariant.price}
+                    onChange={e => setNewVariant(p => ({ ...p, price: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg pl-5 pr-2 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  />
+                </div>
+                <div className="relative col-span-2">
+                  <input
+                    type="number" min={1} placeholder="Weight (g)"
+                    value={newVariant.weightG}
+                    onChange={e => setNewVariant(p => ({ ...p, weightG: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleAddVariant}
+                disabled={!newVariant.label || !newVariant.price || !newVariant.weightG}
+                className="w-full py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-bold rounded-xl disabled:opacity-40 transition-colors"
+              >
+                Add variant
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

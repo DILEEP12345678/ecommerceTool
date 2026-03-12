@@ -3,6 +3,9 @@
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { ArrowLeft, Loader2, Package, ShoppingCart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCollectionPoint, useUser, useUserLoaded } from '../../../components/UserContext';
+import { useEffect } from 'react';
 
 const PRODUCT_IMAGES: Record<string, string> = {
   'PROD-001': 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=400&fit=crop',
@@ -16,9 +19,6 @@ const PRODUCT_IMAGES: Record<string, string> = {
   'PROD-009': 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&h=400&fit=crop',
   'PROD-010': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop',
 };
-import { useRouter } from 'next/navigation';
-import { useCollectionPoint, useUser, useUserLoaded } from '../../../components/UserContext';
-import { useEffect } from 'react';
 
 export default function PackListPage() {
   const router = useRouter();
