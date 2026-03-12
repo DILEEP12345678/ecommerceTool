@@ -9,6 +9,7 @@ import { useUser, useUserLoaded } from '../../../../components/UserContext';
 import { useTheme } from '../../../../components/ThemeProvider';
 import { api } from '../../../../convex/_generated/api';
 import { buildBagPlan, type BagEntry, type ProductMeta } from '../../../../lib/bagPlan';
+import { useLastUpdated } from '../../../../lib/useLastUpdated';
 
 
 export default function OrderDetailPage() {
@@ -81,6 +82,7 @@ export default function OrderDetailPage() {
     }
   }, [user, router, loaded]);
 
+  const lastUpdated = useLastUpdated(order);
   const [timeAgo, setTimeAgo] = useState('');
   useEffect(() => {
     if (!order) return;
@@ -156,14 +158,17 @@ export default function OrderDetailPage() {
               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
             </span>
           </div>
-          <p className="text-xs text-gray-500 truncate">{order.username} · {timeAgo}</p>
+          <p className="text-xs text-gray-500 truncate">
+            {order.username} · {timeAgo}
+            {lastUpdated && <span className="ml-1 text-gray-400">· Updated {lastUpdated}</span>}
+          </p>
         </div>
       </div>
 
       {/* Single scrollable content area */}
       <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
       <div className="max-w-5xl mx-auto px-6 py-4">
-      <div className="flex gap-4 items-stretch">
+      <div className="flex gap-4 items-start">
 
         {/* ── LEFT: items section ─────────────────────────── */}
         <div className="flex-[3] min-w-0 flex flex-col gap-3">
@@ -357,8 +362,8 @@ export default function OrderDetailPage() {
           const bagPlan = buildBagPlan(order.items, productMap);
           if (bagPlan.length === 0) return null;
           return (
-            <div className="hidden sm:flex flex-[2] flex-col">
-              <BagPlanPanel bagPlan={bagPlan} className="flex-1 overflow-y-auto no-scrollbar" />
+            <div className="hidden sm:block flex-[2] sticky top-0 max-h-[calc(100vh-14rem)] overflow-y-auto no-scrollbar">
+              <BagPlanPanel bagPlan={bagPlan} />
             </div>
           );
         })()}

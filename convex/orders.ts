@@ -435,32 +435,48 @@ export const getConfirmedItemsSummary = query({
           .withIndex("by_status", (q) => q.eq("status", "confirmed"))
           .collect();
 
-    const itemMap = new Map<
-      string,
-      { itemId: string; itemName: string; quantity: number; collectionPoints: string[] }
-    >();
+    // Group by base product ID, collect variants as sub-items
+    type VariantEntry = { itemId: string; variantLabel: string; quantity: number };
+    type ProductEntry = { baseId: string; productName: string; totalQuantity: number; variants: Map<string, VariantEntry> };
+    const productMap = new Map<string, ProductEntry>();
 
     for (const order of confirmedOrders) {
       for (const item of order.items) {
-        const existing = itemMap.get(item.itemId);
+        const baseId = item.itemId.split(':')[0];
+        const variantLabel = item.itemId.includes(':')
+          ? item.itemId.split(':').slice(1).join(':')
+          : '';
+        // Base product name: strip variant suffix from itemName if present
+        const productName = item.itemName.includes('(')
+          ? item.itemName.slice(0, item.itemName.lastIndexOf('(')).trim()
+          : item.itemName;
+
+        if (!productMap.has(baseId)) {
+          productMap.set(baseId, { baseId, productName, totalQuantity: 0, variants: new Map() });
+        }
+        const product = productMap.get(baseId)!;
+        product.totalQuantity += item.quantity;
+        product.productName = productName; // keep most recent (consistent)
+
+        const variantKey = variantLabel || '__base__';
+        const existing = product.variants.get(variantKey);
         if (existing) {
           existing.quantity += item.quantity;
-          if (!existing.collectionPoints.includes(order.collectionPoint)) {
-            existing.collectionPoints.push(order.collectionPoint);
-          }
         } else {
-          itemMap.set(item.itemId, {
-            itemId: item.itemId,
-            itemName: item.itemName,
-            quantity: item.quantity,
-            collectionPoints: [order.collectionPoint],
-          });
+          product.variants.set(variantKey, { itemId: item.itemId, variantLabel, quantity: item.quantity });
         }
       }
     }
 
-    return Array.from(itemMap.values()).sort((a, b) =>
-      a.itemName.localeCompare(b.itemName)
-    );
+    return Array.from(productMap.values())
+      .sort((a, b) => a.productName.localeCompare(b.productName))
+      .map(p => ({
+        baseId: p.baseId,
+        productName: p.productName,
+        totalQuantity: p.totalQuantity,
+        variants: Array.from(p.variants.values()).sort((a, b) =>
+          a.variantLabel.localeCompare(b.variantLabel)
+        ),
+      }));
   },
 });

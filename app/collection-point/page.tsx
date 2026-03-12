@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { useCollectionPoint, useUser, useUserLoaded } from '../../components/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, memo, Suspense } from 'react';
+import { useLastUpdated } from '../../lib/useLastUpdated';
 
 const PAGE_SIZE = 40;
 
@@ -98,6 +99,8 @@ function CollectionPointContent() {
     }
   };
 
+  const lastUpdated = useLastUpdated(orders);
+
   if (counts === undefined) {
     return (
       <div className="pb-24 sm:pb-6">
@@ -137,6 +140,12 @@ function CollectionPointContent() {
             <h1 className="text-base font-bold text-white truncate">{collectionPoint}</h1>
             <span className="text-white/40 text-xs flex-shrink-0">·</span>
             <p className="text-xs text-white/60 flex-shrink-0">{today}</p>
+            {lastUpdated && (
+              <>
+                <span className="text-white/40 text-xs flex-shrink-0">·</span>
+                <p className="text-xs text-white/60 flex-shrink-0">Updated {lastUpdated}</p>
+              </>
+            )}
           </div>
       </div>
 

@@ -135,13 +135,14 @@ export default function Navbar() {
             const isActive =
               link.href === '/store'
                 ? pathname === '/store'
-                : pathname.startsWith(link.href);
+                : pathname === link.href ||
+                  (pathname.startsWith(link.href + '/') &&
+                   !links.some(l => l.href !== link.href && pathname.startsWith(l.href)));
             const Icon = link.icon;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-3 py-3 rounded-xl mb-1 text-sm font-semibold transition-colors ${
                   isActive
                     ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
@@ -223,7 +224,9 @@ export default function Navbar() {
               const isActive =
                 link.href === '/store'
                   ? pathname === '/store'
-                  : pathname.startsWith(link.href);
+                  : pathname === link.href ||
+                    (pathname.startsWith(link.href + '/') &&
+                     !links.some(l => l.href !== link.href && pathname.startsWith(l.href)));
               const Icon = link.icon;
               return (
                 <Link
