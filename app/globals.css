@@ -7,8 +7,20 @@
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
+/* Catchall in base layer so Tailwind dark: utilities can override it */
+@layer base {
+  .dark [class*="bg-white"] { background-color: #272a25; }
+}
+
 :root {
   --foreground-rgb: 17, 24, 39;
+  /* Material 3 color tokens */
+  --md-surface:          #f4f6f0;
+  --md-surface-dark:     #1a1c19;
+  --md-surface-container:       #e8ece4;
+  --md-surface-container-dark:  #212420;
+  --md-outline-variant:  #c4c8c0;
+  --md-outline-variant-dark: #44483d;
 }
 
 html {
@@ -19,30 +31,19 @@ html {
   -ms-overflow-style: none;
 }
 
-html::-webkit-scrollbar {
-  display: none;
-}
+html::-webkit-scrollbar { display: none; }
 
-/* ── LIQUID GLASS MESH GRADIENT BACKGROUND ────────────────── */
+/* ── MATERIAL 3 BACKGROUND ────────────────────────────────── */
 body {
   color: rgb(var(--foreground-rgb));
-  background-color: #edf0fb;
-  background-image:
-    radial-gradient(ellipse 65% 55% at 12% 35%, rgba(139, 92, 246, 0.2)  0%, transparent 100%),
-    radial-gradient(ellipse 55% 45% at 88% 12%, rgba(16, 185, 129, 0.18) 0%, transparent 100%),
-    radial-gradient(ellipse 60% 50% at 58% 88%, rgba(59, 130, 246, 0.15) 0%, transparent 100%),
-    radial-gradient(ellipse 45% 40% at 82% 62%, rgba(236, 72, 153, 0.1)  0%, transparent 100%);
-  background-attachment: fixed;
+  background-color: var(--md-surface);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
 }
 
-/* Ensure minimum touch target size for all interactive elements */
-button, a, select {
-  min-height: 44px;
-}
+button, a, select { min-height: 44px; }
 
 input[type="radio"], input[type="checkbox"] {
   width: 1.25rem;
@@ -51,14 +52,12 @@ input[type="radio"], input[type="checkbox"] {
   flex-shrink: 0;
 }
 
-/* Focus styles for keyboard navigation */
 :focus-visible {
   outline: 3px solid #10b981;
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Safe area helpers for iOS home bar / notch */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .pt-safe { padding-top:    env(safe-area-inset-top,    0px); }
 .bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -67,17 +66,16 @@ input[type="radio"], input[type="checkbox"] {
   .text-balance { text-wrap: balance; }
 }
 
-/* ── GLASS CARD BASE (light mode) ─────────────────────────── */
+/* ── MATERIAL 3 ELEVATED CARD ─────────────────────────────── */
+/* Level 1 elevation — replaces glass */
 .rounded-2xl.bg-white,
 .rounded-xl.bg-white {
-  background: rgba(255, 255, 255, 0.62) !important;
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.06),
-    0 1px 3px  rgba(0, 0, 0, 0.04),
-    inset 0 1.5px 0 rgba(255, 255, 255, 1),
-    inset 0 -1px  0 rgba(0, 0, 0, 0.04) !important;
+    0 1px 2px rgba(0, 0, 0, 0.10),
+    0 2px 6px rgba(0, 0, 0, 0.07) !important;
 }
 
 /* ── Clerk sign-in centering ───────────────────────────────── */
@@ -102,39 +100,31 @@ input[type="radio"], input[type="checkbox"] {
 }
 
 /* ── DARK MODE ─────────────────────────────────────────────── */
-.dark {
-  color-scheme: dark;
-}
+.dark { color-scheme: dark; }
 
 .dark body {
-  color: #f9fafb;
-  background-color: #060a1a;
-  background-image:
-    radial-gradient(ellipse 65% 55% at 12% 35%, rgba(139, 92, 246, 0.3)  0%, transparent 100%),
-    radial-gradient(ellipse 55% 45% at 88% 12%, rgba(16, 185, 129, 0.22) 0%, transparent 100%),
-    radial-gradient(ellipse 60% 50% at 58% 88%, rgba(59, 130, 246, 0.2)  0%, transparent 100%),
-    radial-gradient(ellipse 45% 40% at 82% 62%, rgba(236, 72, 153, 0.13) 0%, transparent 100%);
+  color: #e2e3de;
+  background-color: var(--md-surface-dark);
 }
 
-/* ── GLASS CARD BASE (dark mode) ──────────────────────────── */
+/* ── M3 Elevated Card (dark) ──────────────────────────────── */
 .dark .rounded-2xl.bg-white,
 .dark .rounded-xl.bg-white,
 .dark [class*="bg-white"].rounded-2xl,
 .dark [class*="bg-white"].rounded-xl {
-  background: rgba(10, 18, 42, 0.52) !important;
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  background: #272a25 !important;   /* M3 surface-container */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   box-shadow:
-    0 4px 28px rgba(0, 0, 0, 0.55),
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.09),
-    inset 0 -1px  0 rgba(0, 0, 0, 0.35) !important;
+    0 1px 3px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.30) !important;
 }
 
 /* ── Gray backgrounds ── */
-.dark .bg-gray-50  { background-color: rgba(17, 24, 39, 0.7); }
-.dark .bg-gray-100 { background-color: #374151; }
-.dark .bg-gray-200 { background-color: #4b5563; }
-.dark .bg-gray-300 { background-color: #6b7280; }
+.dark .bg-gray-50  { background-color: #212420; }
+.dark .bg-gray-100 { background-color: #2e3129; }
+.dark .bg-gray-200 { background-color: #3c3f37; }
+.dark .bg-gray-300 { background-color: #4b4e44; }
 
 /* ── Primary light backgrounds ── */
 .dark .bg-primary-50  { background-color: rgba(5, 150, 105, 0.15); }
@@ -157,12 +147,12 @@ input[type="radio"], input[type="checkbox"] {
 .dark .bg-purple-100 { background-color: rgba(109,  40, 217, 0.30); }
 
 /* ── Gray text ── */
-.dark .text-gray-900 { color: #f9fafb; }
-.dark .text-gray-800 { color: #f3f4f6; }
-.dark .text-gray-700 { color: #e5e7eb; }
-.dark .text-gray-600 { color: #d1d5db; }
-.dark .text-gray-500 { color: #9ca3af; }
-.dark .text-gray-400 { color: #6b7280; }
+.dark .text-gray-900 { color: #e2e3de; }
+.dark .text-gray-800 { color: #d4d6d1; }
+.dark .text-gray-700 { color: #c6c8c2; }
+.dark .text-gray-600 { color: #b0b3aa; }
+.dark .text-gray-500 { color: #9a9d92; }
+.dark .text-gray-400 { color: #72756c; }
 
 /* ── Status / badge text ── */
 .dark .text-yellow-800 { color: #fde68a; }
@@ -184,8 +174,8 @@ input[type="radio"], input[type="checkbox"] {
 .dark .text-purple-700 { color: #c4b5fd; }
 
 /* ── Borders ── */
-.dark .border-gray-100   { border-color: rgba(255,255,255,0.08); }
-.dark .border-gray-200   { border-color: #4b5563; }
+.dark .border-gray-100   { border-color: #3a3d35; }
+.dark .border-gray-200   { border-color: #44483d; }
 .dark .border-blue-200   { border-color: rgba( 59, 130, 246, 0.35); }
 .dark .border-yellow-200 { border-color: rgba(202, 138,   4, 0.35); }
 .dark .border-green-200  { border-color: rgba( 22, 163,  74, 0.35); }
@@ -194,17 +184,18 @@ input[type="radio"], input[type="checkbox"] {
 .dark .border-orange-200 { border-color: rgba(234,  88,  12, 0.35); }
 
 /* ── Hover states ── */
-.dark .hover\:bg-gray-50:hover     { background-color: rgba(55, 65, 81, 0.6); }
-.dark .hover\:bg-gray-100:hover    { background-color: rgba(75, 85, 99, 0.6); }
+.dark .hover\:bg-gray-50:hover     { background-color: #2e3129; }
+.dark .hover\:bg-gray-100:hover    { background-color: #3c3f37; }
 .dark .hover\:bg-red-50:hover      { background-color: rgba(220, 38, 38, 0.15); }
 .dark .hover\:bg-primary-50:hover  { background-color: rgba(5, 150, 105, 0.15); }
 
 /* ── Divide lines ── */
-.dark .divide-gray-100 > * + * { border-color: rgba(255,255,255,0.07); }
-.dark .divide-gray-200 > * + * { border-color: #4b5563; }
+.dark .divide-gray-100 > * + * { border-color: #3a3d35; }
+.dark .divide-gray-200 > * + * { border-color: #44483d; }
 
-/* ── Shadows ── */
-.dark .shadow-sm  { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.5); }
-.dark .shadow     { box-shadow: 0 1px 4px 0 rgba(0,0,0,0.6); }
-.dark .shadow-lg  { box-shadow: 0 10px 20px -3px rgba(0,0,0,0.6); }
-.dark .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); }
+/* ── Shadows (M3 elevation in dark) ── */
+.dark .shadow-sm  { box-shadow: 0 1px 3px rgba(0,0,0,0.5);  }
+.dark .shadow     { box-shadow: 0 1px 4px rgba(0,0,0,0.6);  }
+.dark .shadow-md  { box-shadow: 0 2px 8px rgba(0,0,0,0.55); }
+.dark .shadow-lg  { box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+.dark .shadow-2xl { box-shadow: 0 8px 32px rgba(0,0,0,0.8); }

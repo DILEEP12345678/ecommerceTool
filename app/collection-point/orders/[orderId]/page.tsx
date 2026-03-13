@@ -147,7 +147,7 @@ export default function OrderDetailPage() {
 
 
   return (
-    <div className="flex flex-col bg-gray-50 h-[calc(100vh-7.5rem)] sm:h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col bg-gray-50 dark:bg-[#1a1c19] h-[calc(100vh-7.5rem)] sm:h-[calc(100vh-3.5rem)]">
       {/* Fixed top bar */}
       <div className="flex-shrink-0 bg-white dark:bg-gray-800 shadow-sm px-4 py-2.5 flex items-center gap-3">
         <button
@@ -311,8 +311,8 @@ export default function OrderDetailPage() {
                             isComplete && isConfirmed
                               ? 'bg-green-500 border-green-500 text-white'
                               : isConfirmed
-                              ? 'bg-white border-gray-300 text-gray-900 hover:border-primary-300 hover:bg-primary-50'
-                              : 'bg-gray-50 border-transparent text-gray-800'
+                              ? 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30'
+                              : 'bg-gray-50 dark:bg-gray-700/50 border-transparent text-gray-800 dark:text-gray-300'
                           }`}
                         >
                           <div className="flex items-center justify-between w-full gap-2">
@@ -322,7 +322,7 @@ export default function OrderDetailPage() {
                                 <span
                                   key={i}
                                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                                    isComplete && isConfirmed ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                                    isComplete && isConfirmed ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-300'
                                   }`}
                                 >
                                   Bag {a.bagNo}
@@ -362,7 +362,7 @@ export default function OrderDetailPage() {
       </div>{/* end scrollable */}
 
       {/* Footer action bar — fixed at bottom of flex column */}
-      <div className="flex-shrink-0 bg-white border-t border-gray-100 shadow-lg px-4 py-3">
+      <div className="flex-shrink-0 bg-white dark:bg-[#272a25] border-t border-gray-100 dark:border-gray-700 shadow-lg px-4 py-3">
         <div className="max-w-2xl mx-auto">
           {order.status === 'confirmed' && (
             <div className="flex flex-col gap-2">
@@ -377,7 +377,7 @@ export default function OrderDetailPage() {
                 className={`w-full py-4 rounded-xl text-base font-bold transition-all ${
                   allComplete
                     ? 'bg-primary-500 hover:bg-primary-600 active:scale-[0.98] text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                 }`}
               >
                 {allComplete ? 'Mark as Packed ✓' : 'Mark as Packed'}

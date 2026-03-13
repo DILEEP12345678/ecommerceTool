@@ -96,7 +96,7 @@ export default function Navbar() {
       )}
 
       {/* ── MINIMAL TOP BAR ────────────────────────────────── */}
-      <nav className="bg-white/50 dark:bg-black/30 backdrop-blur-2xl sticky top-0 z-50 border-b border-white/70 dark:border-white/10" style={{ boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.4), 0 1px 20px rgba(0,0,0,0.06)' }}>
+      <nav className="bg-[#f4f6f0] dark:bg-[#1a1c19] sticky top-0 z-50 border-b border-[#c4c8c0] dark:border-[#3a3d35]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
         <div className="px-4 sm:px-6">
           <div className="relative flex justify-between items-center h-14">
             {/* Logo */}
@@ -149,10 +149,10 @@ export default function Navbar() {
 
       {/* ── DROPDOWN MENU ──────────────────────────────────── */}
       {isOpen && (
-        <div className="fixed top-[58px] right-4 z-50 w-64 bg-white/70 dark:bg-black/50 backdrop-blur-3xl rounded-2xl border border-white/80 dark:border-white/12 animate-fade-in-scale overflow-hidden" style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.12), inset 0 1.5px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(0,0,0,0.06)' }}>
+        <div className="fixed top-[58px] right-4 z-50 w-64 bg-white dark:bg-[#2a2d28] rounded-[16px] border border-[#c4c8c0] dark:border-[#3a3d35] animate-fade-in-scale overflow-hidden" style={{ boxShadow: '0 2px 6px 2px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.12)' }}>
 
           {/* User info */}
-          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-black/5 dark:border-white/10">
+          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#c4c8c0] dark:border-[#3a3d35]">
             <div className="w-9 h-9 rounded-full overflow-hidden bg-primary-500 flex-shrink-0">
               {avatarUrl
                 ? <img src={avatarUrl} alt={user?.name} className="w-full h-full object-cover" />
@@ -191,13 +191,13 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-primary-500/10 text-primary-700 dark:bg-primary-400/15 dark:text-primary-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/8'
+                      ? 'bg-[#b7f5c8] dark:bg-[#004d26] text-[#1a6b2f] dark:text-[#7dd98a]'
+                      : 'text-[#1a1c19] dark:text-[#e2e3de] hover:bg-[#d8dcd4] dark:hover:bg-[#2e3129]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#1a6b2f] dark:text-[#7dd98a]' : 'text-[#42493e] dark:text-[#8a9384]'}`} />
                   {link.label}
                 </Link>
               );
@@ -205,7 +205,7 @@ export default function Navbar() {
           </div>
 
           {/* Dark mode + Logout */}
-          <div className="border-t border-black/5 dark:border-white/10 p-1.5">
+          <div className="border-t border-[#c4c8c0] dark:border-[#3a3d35] p-1.5">
             <button
               onClick={toggle}
               className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/8 transition-colors"
@@ -243,7 +243,7 @@ export default function Navbar() {
 
       {/* ── MOBILE BOTTOM TAB BAR ──────────────────────────── */}
       {user && role !== 'admin' && !(role === 'collection_point_manager' && pathname === '/collection-point') && (
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/55 dark:bg-black/40 backdrop-blur-2xl border-t border-white/75 dark:border-white/10 bottom-nav" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 -4px 20px rgba(0,0,0,0.06)' }}>
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#e8ece4] dark:bg-[#212420] border-t border-[#c4c8c0] dark:border-[#3a3d35] bottom-nav" style={{ boxShadow: '0 -1px 3px rgba(0,0,0,0.08)' }}>
           <div className="flex">
             {links.map((link) => {
               const isActive =
@@ -257,12 +257,16 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-colors ${
-                    isActive ? 'text-primary-600' : 'text-gray-400 dark:text-gray-500 hover:text-primary-500'
-                  }`}
+                  className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors"
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-xs font-semibold">{link.label}</span>
+                  <span className={`flex items-center justify-center w-16 h-8 rounded-full transition-all ${
+                    isActive ? 'bg-[#b7f5c8] dark:bg-[#004d26]' : ''
+                  }`}>
+                    <Icon className={`w-5 h-5 ${isActive ? 'text-[#1a6b2f] dark:text-[#7dd98a]' : 'text-[#42493e] dark:text-[#8a9384]'}`} />
+                  </span>
+                  <span className={`text-xs font-medium ${isActive ? 'text-[#1a6b2f] dark:text-[#7dd98a] font-semibold' : 'text-[#42493e] dark:text-[#8a9384]'}`}>
+                    {link.label}
+                  </span>
                 </Link>
               );
             })}
