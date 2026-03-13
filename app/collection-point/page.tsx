@@ -203,16 +203,15 @@ function CollectionPointContent() {
 
       {/* ── HERO HEADER ─────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-primary-600 to-primary-700 px-4 pt-4 pb-8">
-        <div className="inline-flex items-center gap-1.5 min-w-0 bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl px-3 py-2">
-          <MapPin className="w-3.5 h-3.5 text-white/90 flex-shrink-0" />
-          <h1 className="text-sm font-bold text-white truncate">{collectionPoint}</h1>
-          <span className="text-white/40 text-xs flex-shrink-0">·</span>
-          <p className="text-xs text-white/70 flex-shrink-0">{today}</p>
+        <div className="bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl px-3 py-2 max-w-full">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <MapPin className="w-3.5 h-3.5 text-white/90 flex-shrink-0" />
+            <h1 className="text-sm font-bold text-white truncate">{collectionPoint}</h1>
+            <span className="text-white/40 text-xs flex-shrink-0">·</span>
+            <p className="text-xs text-white/70 flex-shrink-0 truncate">{today}</p>
+          </div>
           {lastUpdated && (
-            <>
-              <span className="text-white/40 text-xs flex-shrink-0">·</span>
-              <p className="text-xs text-white/60 flex-shrink-0">Updated {lastUpdated}</p>
-            </>
+            <p className="text-xs text-white/60 mt-0.5 pl-5">Updated {lastUpdated}</p>
           )}
         </div>
       </div>

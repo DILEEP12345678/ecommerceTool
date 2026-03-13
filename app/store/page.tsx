@@ -134,7 +134,7 @@ export default function HomePage() {
           {cpOpen && collectionPoints && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setCpOpen(false)} />
-              <div className="absolute left-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 min-w-[220px] animate-fade-in-scale">
+              <div className="absolute left-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 w-[min(85vw,280px)] animate-fade-in-scale">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1">
                   Collection points
                 </p>
@@ -315,7 +315,7 @@ export default function HomePage() {
 
       {/* Floating checkout bar */}
       {totalItems > 0 && (
-        <div className="fixed bottom-20 sm:bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl p-3 sm:p-4 z-50">
+        <div className="fixed bottom-[66px] sm:bottom-0 left-0 right-0 bg-white dark:bg-[#272a25] border-t border-gray-200 dark:border-gray-700 shadow-xl p-3 sm:p-4 z-50">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
