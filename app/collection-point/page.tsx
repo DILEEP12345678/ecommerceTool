@@ -301,15 +301,21 @@ const OrderCard = memo(({ order, router, onMarkCollected, productImageMap }: {
   const extraCount = order.items.length - previewItems.length;
 
   const [timeAgo, setTimeAgo] = useState('');
+  const [ageHrs, setAgeHrs] = useState(0);
   useEffect(() => {
     const diff = Date.now() - order.createdAt;
     const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    setAgeHrs(hrs);
     if (mins < 1) { setTimeAgo('just now'); return; }
     if (mins < 60) { setTimeAgo(`${mins}m ago`); return; }
-    const hrs = Math.floor(mins / 60);
     if (hrs < 24) { setTimeAgo(`${hrs}h ago`); return; }
     setTimeAgo(new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
   }, [order.createdAt]);
+
+  const urgency = order.status === 'confirmed'
+    ? ageHrs >= 4 ? 'red' : ageHrs >= 2 ? 'amber' : null
+    : null;
 
   const [packingPct, setPackingPct] = useState<number | null>(null);
   useEffect(() => {
@@ -338,7 +344,11 @@ const OrderCard = memo(({ order, router, onMarkCollected, productImageMap }: {
     <div
       onClick={() => router.push(`/collection-point/orders/${order.orderId}`)}
       className={`bg-white rounded-2xl shadow-sm border transition-all cursor-pointer active:scale-[0.99] overflow-hidden flex flex-col ${
-        packingPct !== null && isConfirmed
+        urgency === 'red'
+          ? 'border-red-300'
+          : urgency === 'amber'
+          ? 'border-amber-300'
+          : packingPct !== null && isConfirmed
           ? 'border-orange-200'
           : 'border-transparent hover:shadow-md'
       }`}
@@ -355,10 +365,16 @@ const OrderCard = memo(({ order, router, onMarkCollected, productImageMap }: {
                 {order.status}
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <span className="text-sm font-semibold text-gray-700 truncate">{order.username}</span>
               <span className="text-xs text-gray-400 flex-shrink-0">· {timeAgo}</span>
+              {urgency === 'red' && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 flex-shrink-0">Urgent</span>
+              )}
+              {urgency === 'amber' && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 flex-shrink-0">Waiting</span>
+              )}
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />

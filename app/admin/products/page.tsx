@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { Check, ChevronDown, Layers, Loader2, MapPin, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Layers, Loader2, MapPin, Package, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -63,6 +63,7 @@ export default function ProductsPage() {
 
   const [selectedCP, setSelectedCP] = useState<string>('all');
   const [cpOpen, setCpOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
@@ -147,8 +148,10 @@ export default function ProductsPage() {
   // Real DB rows have _creationTime set by Convex; fallback objects don't
   const isSeeded = (products ?? []).some((p: any) => p._creationTime != null);
 
-  // When a CP is selected show ALL products so admin can toggle each one's stocking status
-  const filteredProducts = products ?? [];
+  // Filter by search and show all for CP (stocking toggled per row)
+  const filteredProducts = (products ?? []).filter((p: any) =>
+    search === '' || p.name.toLowerCase().includes(search.toLowerCase()) || p.productId.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24 sm:pb-6">
@@ -194,8 +197,22 @@ export default function ProductsPage() {
             </>
           )}
         </div>
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search products…"
+            className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white transition-colors"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
         {selectedCP !== 'all' && products && (
-          <span className="text-xs text-gray-400 font-semibold">
+          <span className="text-xs text-gray-400 font-semibold whitespace-nowrap">
             {(products as any[]).filter((p: any) => (p.collectionPoints ?? []).includes(selectedCP)).length} / {products.length} stocked
           </span>
         )}

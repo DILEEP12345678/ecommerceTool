@@ -167,7 +167,11 @@ export default function HomePage() {
 
       {/* Products Grid — Amazon-style */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-        {products.map((product: any) => {
+        {[...products].sort((a: any, b: any) => {
+          const aOOS = a.available === false || (selectedCollectionPoint && (a.collectionPoints ?? []).length > 0 && !(a.collectionPoints ?? []).includes(selectedCollectionPoint));
+          const bOOS = b.available === false || (selectedCollectionPoint && (b.collectionPoints ?? []).length > 0 && !(b.collectionPoints ?? []).includes(selectedCollectionPoint));
+          return (aOOS ? 1 : 0) - (bOOS ? 1 : 0);
+        }).map((product: any) => {
           const hasVariants = product.variants?.length > 0;
           const selectedLabel = selectedVariants[product.productId] ?? product.variants?.[0]?.label;
           const selectedVariant = product.variants?.find((v: any) => v.label === selectedLabel);
