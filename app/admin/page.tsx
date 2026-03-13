@@ -93,16 +93,16 @@ export default function AdminDashboard() {
       {/* ── KPI CARDS ROW 1 — Order pipeline ─────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <RevenueCard revenuePence={metrics.totalRevenuePence} />
-        <KpiCard label="Confirmed"     value={metrics.confirmed} icon={Clock}        color="bg-amber-500"                   textColor="text-white"                     subColor="text-amber-200"                   iconColor="text-amber-200" />
-        <KpiCard label="Packed"        value={metrics.packed}    icon={Package}      color="bg-blue-500"                    textColor="text-white"                     subColor="text-blue-200"                    iconColor="text-blue-200" />
-        <KpiCard label="Collected"     value={metrics.collected} icon={CheckCircle2} color="bg-green-500"                   textColor="text-white"                     subColor="text-green-200"                   iconColor="text-green-200" badge={`${metrics.fulfillmentRate}% rate`} />
+        <KpiCard label="Confirmed"     value={metrics.confirmed} icon={Clock}        color="bg-amber-500/75"                textColor="text-white"                     subColor="text-amber-100"                   iconColor="text-amber-100" />
+        <KpiCard label="Packed"        value={metrics.packed}    icon={Package}      color="bg-blue-500/75"                 textColor="text-white"                     subColor="text-blue-100"                    iconColor="text-blue-100" />
+        <KpiCard label="Collected"     value={metrics.collected} icon={CheckCircle2} color="bg-green-500/75"                textColor="text-white"                     subColor="text-green-100"                   iconColor="text-green-100" badge={`${metrics.fulfillmentRate}% rate`} />
       </div>
 
       {/* ── KPI CARDS ROW 2 — Business health ────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <AovCard avgOrderValuePence={metrics.avgOrderValuePence} />
-        <KpiCard label="Active Customers" value={metrics.activeCustomers}  icon={Users}       color="bg-violet-500"  textColor="text-white" subColor="text-violet-200"  iconColor="text-violet-200" />
-        <KpiCard label="Repeat Customers" value={metrics.repeatCustomers}  icon={RefreshCw}   color="bg-indigo-500"  textColor="text-white" subColor="text-indigo-200"  iconColor="text-indigo-200" badge={`${metrics.repeatRate}% rate`} />
+        <KpiCard label="Active Customers" value={metrics.activeCustomers}  icon={Users}       color="bg-violet-500/75"  textColor="text-white" subColor="text-violet-100"  iconColor="text-violet-100" />
+        <KpiCard label="Repeat Customers" value={metrics.repeatCustomers}  icon={RefreshCw}   color="bg-indigo-500/75"  textColor="text-white" subColor="text-indigo-100"  iconColor="text-indigo-100" badge={`${metrics.repeatRate}% rate`} />
         <TurnaroundCard avgTurnaround={metrics.avgTurnaround} />
       </div>
 
@@ -184,7 +184,7 @@ function RevenueCard({ revenuePence }: { revenuePence: number }) {
   const pounds = Math.floor(displayedPence / 100);
   const pence = displayedPence % 100;
   return (
-    <div className="col-span-2 lg:col-span-1 rounded-2xl p-4 flex flex-col gap-2 bg-primary-600">
+    <div className="col-span-2 lg:col-span-1 rounded-2xl p-4 flex flex-col gap-2 bg-primary-600/75 backdrop-blur-2xl border border-white/25" style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.15), 0 4px 20px rgba(0,0,0,0.12)' }}>
       <div className="flex items-center justify-between">
         <PoundSterling className="w-4 h-4 text-primary-200" />
       </div>
@@ -205,7 +205,7 @@ function KpiCard({ label, value, icon: Icon, color, textColor, subColor, iconCol
 }) {
   const displayed = useCountUp(value);
   return (
-    <div className={`rounded-2xl p-4 flex flex-col gap-2 ${color}`}>
+    <div className={`rounded-2xl p-4 flex flex-col gap-2 backdrop-blur-2xl border border-white/25 ${color}`} style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.15), 0 4px 20px rgba(0,0,0,0.12)' }}>
       <div className="flex items-center justify-between">
         <Icon className={`w-4 h-4 ${iconColor}`} />
         {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 ${textColor}`}>{badge}</span>}
@@ -223,7 +223,7 @@ function AovCard({ avgOrderValuePence }: { avgOrderValuePence: number }) {
   const pounds = Math.floor(displayed / 100);
   const pence = displayed % 100;
   return (
-    <div className="col-span-2 lg:col-span-1 rounded-2xl p-4 flex flex-col gap-2 bg-teal-600">
+    <div className="col-span-2 lg:col-span-1 rounded-2xl p-4 flex flex-col gap-2 bg-teal-600/75 backdrop-blur-2xl border border-white/25" style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.15), 0 4px 20px rgba(0,0,0,0.12)' }}>
       <PoundSterling className="w-4 h-4 text-teal-200" />
       <div>
         <p className="text-3xl font-bold tabular-nums leading-none text-white">
@@ -237,7 +237,7 @@ function AovCard({ avgOrderValuePence }: { avgOrderValuePence: number }) {
 
 function TurnaroundCard({ avgTurnaround }: { avgTurnaround: string | null }) {
   return (
-    <div className="rounded-2xl p-4 flex flex-col gap-2 bg-orange-500">
+    <div className="rounded-2xl p-4 flex flex-col gap-2 bg-orange-500/75 backdrop-blur-2xl border border-white/25" style={{ boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.15), 0 4px 20px rgba(0,0,0,0.12)' }}>
       <Timer className="w-4 h-4 text-orange-200" />
       <div>
         <p className="text-3xl font-bold tabular-nums leading-none text-white">

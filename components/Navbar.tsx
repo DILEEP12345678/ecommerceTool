@@ -96,7 +96,7 @@ export default function Navbar() {
       )}
 
       {/* ── MINIMAL TOP BAR ────────────────────────────────── */}
-      <nav className="bg-white/75 dark:bg-gray-900/75 backdrop-blur-xl sticky top-0 z-50 border-b border-white/60 dark:border-white/10 shadow-sm">
+      <nav className="bg-white/50 dark:bg-black/30 backdrop-blur-2xl sticky top-0 z-50 border-b border-white/70 dark:border-white/10" style={{ boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.4), 0 1px 20px rgba(0,0,0,0.06)' }}>
         <div className="px-4 sm:px-6">
           <div className="relative flex justify-between items-center h-14">
             {/* Logo */}
@@ -149,7 +149,7 @@ export default function Navbar() {
 
       {/* ── DROPDOWN MENU ──────────────────────────────────── */}
       {isOpen && (
-        <div className="fixed top-[58px] right-4 z-50 w-64 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-black/5 dark:border-white/10 animate-fade-in-scale overflow-hidden">
+        <div className="fixed top-[58px] right-4 z-50 w-64 bg-white/70 dark:bg-black/50 backdrop-blur-3xl rounded-2xl border border-white/80 dark:border-white/12 animate-fade-in-scale overflow-hidden" style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.12), inset 0 1.5px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(0,0,0,0.06)' }}>
 
           {/* User info */}
           <div className="flex items-center gap-3 px-4 py-3.5 border-b border-black/5 dark:border-white/10">
@@ -243,7 +243,7 @@ export default function Navbar() {
 
       {/* ── MOBILE BOTTOM TAB BAR ──────────────────────────── */}
       {user && role !== 'admin' && !(role === 'collection_point_manager' && pathname === '/collection-point') && (
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/60 dark:border-white/10 shadow-lg bottom-nav">
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/55 dark:bg-black/40 backdrop-blur-2xl border-t border-white/75 dark:border-white/10 bottom-nav" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 -4px 20px rgba(0,0,0,0.06)' }}>
           <div className="flex">
             {links.map((link) => {
               const isActive =
