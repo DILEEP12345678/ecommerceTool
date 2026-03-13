@@ -1,6 +1,6 @@
 'use client';
 
-import { SignIn, useUser as useClerkUser } from '@clerk/nextjs';
+import { SignIn, useClerk, useUser as useClerkUser } from '@clerk/nextjs';
 import { useMutation, useQuery } from 'convex/react';
 import { CheckCircle2, Loader2, MapPin, Package, Shield, ShoppingBag, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -11,6 +11,7 @@ import { useUser, useUserLoaded, useUserRoles } from '../../components/UserConte
 export default function LoginPage() {
   const router = useRouter();
   const { isSignedIn, isLoaded: clerkLoaded } = useClerkUser();
+  const { signOut } = useClerk();
   const appUser = useUser();
   const appLoaded = useUserLoaded();
   const userRoles = useUserRoles();
@@ -221,8 +222,14 @@ export default function LoginPage() {
                   <Loader2 className="w-7 h-7 text-primary-400 animate-spin" />
                 </div>
               ) : collectionPoints.length === 0 ? (
-                <div className="flex items-center justify-center py-12">
-                  <p className="text-sm text-gray-500 text-center">No collection points available yet.</p>
+                <div className="flex flex-col items-center justify-center py-10 gap-4">
+                  <p className="text-sm text-gray-500 text-center">No collection points are available yet.<br />Please check back later.</p>
+                  <button
+                    onClick={() => signOut()}
+                    className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
+                  >
+                    Sign out
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-2.5 mb-7">
