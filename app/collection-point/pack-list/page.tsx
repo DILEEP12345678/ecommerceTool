@@ -82,7 +82,7 @@ export default function PackListPage() {
           className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors -ml-1 flex-shrink-0"
           aria-label="Back to dashboard"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
+          <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -134,11 +134,11 @@ export default function PackListPage() {
                   {/* Product header row */}
                   <div className="flex items-center px-4 py-3.5 gap-3">
                     <div
-                      className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 cursor-zoom-in"
+                      className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 cursor-zoom-in relative group"
                       onClick={() => imgSrc && setZoomed({ src: imgSrc, alt: product.productName })}
                     >
                       {imgSrc ? (
-                        <img src={imgSrc} alt={product.productName} className="w-full h-full object-cover" />
+                        <img src={imgSrc} alt={product.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Package className="w-5 h-5 text-gray-400" />

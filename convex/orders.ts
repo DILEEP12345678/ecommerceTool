@@ -16,6 +16,16 @@ export const create = mutation({
     collectionPoint: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!caller) throw new Error('User not found');
+    if (caller.role !== 'customer') throw new Error('Only customers can place orders');
+
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const createdAt = Date.now();
 
@@ -144,6 +154,17 @@ export const updateStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!caller || (caller.role !== 'collection_point_manager' && caller.role !== 'admin')) {
+      throw new Error('Unauthorized');
+    }
+
     // Find the order
     const order = await ctx.db
       .query("orders")

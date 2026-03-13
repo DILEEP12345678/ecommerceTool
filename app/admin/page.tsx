@@ -5,7 +5,26 @@ import { api } from '../../convex/_generated/api';
 import { Loader2, Package, User, MapPin, Hash, ChevronDown } from 'lucide-react';
 import { useUser, useUserLoaded } from '../../components/UserContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
+
+function useCountUp(value: number, duration = 550) {
+  const [display, setDisplay] = useState(0);
+  const prev = useRef(0);
+  useEffect(() => {
+    const from = prev.current;
+    prev.current = value;
+    if (from === value) { setDisplay(value); return; }
+    const startTime = Date.now();
+    const tick = () => {
+      const p = Math.min((Date.now() - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 2);
+      setDisplay(Math.round(from + (value - from) * eased));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [value, duration]);
+  return display;
+}
 import { usePullToRefresh } from '../../lib/usePullToRefresh';
 import PullToRefreshIndicator from '../../components/PullToRefreshIndicator';
 
@@ -134,17 +153,19 @@ export default function AdminPage() {
           { key: 'packed',    label: 'Packed',    count: stats.packed,    icon: Package, active: 'bg-blue-600 border-blue-700', inactive: 'bg-blue-50 border-blue-200', activeText: 'text-white', inactiveText: 'text-blue-900', activeLabel: 'text-blue-100', inactiveLabel: 'text-blue-700', activeIcon: 'text-blue-100', inactiveIcon: 'text-blue-700' },
           { key: 'collected', label: 'Collected', count: stats.collected, icon: Package, active: 'bg-green-600 border-green-700', inactive: 'bg-green-50 border-green-200', activeText: 'text-white', inactiveText: 'text-green-900', activeLabel: 'text-green-100', inactiveLabel: 'text-green-700', activeIcon: 'text-green-100', inactiveIcon: 'text-green-700' },
         ].map(({ key, label, count, icon: Icon, active, inactive, activeText, inactiveText, activeLabel, inactiveLabel, activeIcon, inactiveIcon }) => (
-          <button
+          <StatCard
             key={key}
+            statKey={key}
+            label={label}
+            count={count}
+            icon={Icon}
+            isActive={selectedStatus === key}
+            active={active} inactive={inactive}
+            activeText={activeText} inactiveText={inactiveText}
+            activeLabel={activeLabel} inactiveLabel={inactiveLabel}
+            activeIcon={activeIcon} inactiveIcon={inactiveIcon}
             onClick={() => setSelectedStatus(key as any)}
-            className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 sm:py-4 rounded-2xl border-2 transition-all ${selectedStatus === key ? active : inactive} hover:shadow-md`}
-          >
-            <Icon className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${selectedStatus === key ? activeIcon : inactiveIcon}`} />
-            <div className="text-left min-w-0">
-              <p className={`text-xs sm:text-sm font-medium ${selectedStatus === key ? activeLabel : inactiveLabel}`}>{label}</p>
-              <p className={`text-xl sm:text-2xl font-bold ${selectedStatus === key ? activeText : inactiveText}`}>{count}</p>
-            </div>
-          </button>
+          />
         ))}
       </div>
 
@@ -169,8 +190,10 @@ export default function AdminPage() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {orders.map((order: any) => (
-                <OrderCard key={order.orderId} order={order} router={router} getImage={getImage} />
+              {orders.map((order: any, index: number) => (
+                <div key={order.orderId} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}>
+                  <OrderCard order={order} router={router} getImage={getImage} />
+                </div>
               ))}
             </div>
 
@@ -196,26 +219,40 @@ export default function AdminPage() {
 
       {/* Mobile status bottom tab bar */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 shadow-lg">
-        <div className="flex">
-          {[
-            { key: 'all',       label: 'All',       count: stats.total,     color: 'text-gray-600',   activeColor: 'text-gray-900',   activeBg: 'bg-gray-100'  },
-            { key: 'confirmed', label: 'Confirmed',  count: stats.confirmed, color: 'text-yellow-500', activeColor: 'text-yellow-700', activeBg: 'bg-yellow-50' },
-            { key: 'packed',    label: 'Packed',     count: stats.packed,    color: 'text-blue-500',   activeColor: 'text-blue-700',   activeBg: 'bg-blue-50'   },
-            { key: 'collected', label: 'Collected',  count: stats.collected, color: 'text-green-500',  activeColor: 'text-green-700',  activeBg: 'bg-green-50'  },
-          ].map(({ key, label, count, color, activeColor, activeBg }) => {
-            const isActive = selectedStatus === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setSelectedStatus(key as any)}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-3 transition-colors ${isActive ? activeBg : ''}`}
-              >
-                <span className={`text-lg font-bold leading-none ${isActive ? activeColor : color}`}>{count}</span>
-                <span className={`text-[10px] font-semibold ${isActive ? activeColor : 'text-gray-400'}`}>{label}</span>
-              </button>
-            );
-          })}
-        </div>
+        {(() => {
+          const mobileTabs = [
+            { key: 'all',       label: 'All',      count: stats.total,     activeColor: 'text-gray-900',   inactiveColor: 'text-gray-500',   indicatorColor: 'bg-gray-800'   },
+            { key: 'confirmed', label: 'Confirmed', count: stats.confirmed, activeColor: 'text-yellow-700', inactiveColor: 'text-yellow-500', indicatorColor: 'bg-yellow-500' },
+            { key: 'packed',    label: 'Packed',    count: stats.packed,    activeColor: 'text-blue-700',   inactiveColor: 'text-blue-400',   indicatorColor: 'bg-blue-500'   },
+            { key: 'collected', label: 'Collected', count: stats.collected, activeColor: 'text-green-700',  inactiveColor: 'text-green-500',  indicatorColor: 'bg-green-500'  },
+          ];
+          const activeIdx = mobileTabs.findIndex(t => t.key === selectedStatus);
+          const activeTab = mobileTabs[activeIdx];
+          return (
+            <div className="relative">
+              {/* Sliding pill indicator */}
+              <div
+                className={`absolute top-0 h-0.5 rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] ${activeTab?.indicatorColor}`}
+                style={{ width: `${100 / mobileTabs.length}%`, transform: `translateX(${activeIdx * 100}%)` }}
+              />
+              <div className="flex">
+                {mobileTabs.map(({ key, label, count, activeColor, inactiveColor }) => {
+                  const isActive = selectedStatus === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedStatus(key as any)}
+                      className="flex-1 flex flex-col items-center justify-center gap-0.5 py-3 transition-colors"
+                    >
+                      <span className={`text-lg font-bold leading-none transition-colors duration-200 ${isActive ? activeColor : inactiveColor}`}>{count}</span>
+                      <span className={`text-[10px] font-semibold transition-colors duration-200 ${isActive ? activeColor : 'text-gray-400'}`}>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </nav>
     </div>
   );
@@ -284,6 +321,29 @@ const OrderCard = memo(({ order, router, getImage }: { order: any; router: any; 
 });
 
 OrderCard.displayName = 'OrderCard';
+
+const StatCard = memo(({ statKey, label, count, icon: Icon, isActive, active, inactive, activeText, inactiveText, activeLabel, inactiveLabel, activeIcon, inactiveIcon, onClick }: {
+  statKey: string; label: string; count: number; icon: any; isActive: boolean;
+  active: string; inactive: string; activeText: string; inactiveText: string;
+  activeLabel: string; inactiveLabel: string; activeIcon: string; inactiveIcon: string;
+  onClick: () => void;
+}) => {
+  const displayed = useCountUp(count);
+  return (
+    <button
+      onClick={onClick}
+      className={`relative flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 font-semibold transition-all duration-200 text-left w-full ${isActive ? active : inactive}`}
+    >
+      <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? activeIcon : inactiveIcon}`} />
+      <div className="flex-1 min-w-0">
+        <p className={`text-2xl font-bold leading-none tabular-nums ${isActive ? activeText : inactiveText}`}>{displayed}</p>
+        <p className={`text-xs mt-0.5 font-semibold ${isActive ? activeLabel : inactiveLabel}`}>{label}</p>
+      </div>
+      {isActive && <div className="w-2 h-2 rounded-full bg-white/60 flex-shrink-0" />}
+    </button>
+  );
+});
+StatCard.displayName = 'StatCard';
 
 function getStatusColor(status: string) {
   const colors: Record<string, string> = {

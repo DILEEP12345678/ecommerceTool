@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, ClipboardList, LogIn, LogOut, Moon, Package, Shield, ShoppingCart, Sun, Tag, X } from 'lucide-react';
-import { useUser, useSetUser, useUserRole } from './UserContext';
+import { useClerk } from '@clerk/nextjs';
+import { useUser, useUserRole } from './UserContext';
 import { useTheme } from './ThemeProvider';
 import { useState } from 'react';
 
@@ -11,14 +12,14 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const user = useUser();
-  const setUser = useSetUser();
+  const { signOut } = useClerk();
   const role = useUserRole();
   const { theme, toggle } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsOpen(false);
-    setUser(null);
+    await signOut();
     router.push('/login');
   };
 
@@ -76,8 +77,8 @@ export default function Navbar() {
           <div className="relative flex justify-between items-center h-14">
             {/* Logo */}
             <Link href={homeLink} className="flex items-center gap-2">
-              <Package className="w-6 h-6 text-primary-500" />
-              <span className="hidden sm:inline text-base font-bold text-gray-900 dark:text-gray-100">Collection Point</span>
+              <img src="/logo.png" alt="SquadBid" className="w-8 h-8 object-contain mix-blend-multiply dark:mix-blend-screen" />
+              <span className="hidden sm:inline text-base font-bold text-gray-900 dark:text-gray-100">SquadBid</span>
             </Link>
 
             {/* Current page title — center */}

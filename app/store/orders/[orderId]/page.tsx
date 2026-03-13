@@ -91,7 +91,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Status Timeline */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-6 mb-5">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-6 mb-5">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Order Status</h2>
 
         <div className="space-y-2">
@@ -104,7 +104,7 @@ export default function OrderDetailPage() {
               <div className={`w-1 h-14 mt-1 rounded ${
                 order.status === 'packed' || order.status === 'collected'
                   ? 'bg-primary-400'
-                  : 'bg-gray-200'
+                  : 'bg-gray-200 dark:bg-gray-600'
               }`} />
             </div>
             <div className="flex-1 pb-6">
@@ -129,7 +129,7 @@ export default function OrderDetailPage() {
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                 order.status === 'packed' || order.status === 'collected'
                   ? 'bg-blue-100 border-2 border-blue-500'
-                  : 'bg-gray-100 border-2 border-gray-300'
+                  : 'bg-gray-100 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600'
               }`}>
                 {order.status === 'packed' || order.status === 'collected' ? (
                   <CheckCircle2 className="w-6 h-6 text-blue-600" />
@@ -140,7 +140,7 @@ export default function OrderDetailPage() {
               <div className={`w-1 h-14 mt-1 rounded ${
                 order.status === 'collected'
                   ? 'bg-green-400'
-                  : 'bg-gray-200'
+                  : 'bg-gray-200 dark:bg-gray-600'
               }`} />
             </div>
             <div className="flex-1 pb-6">
@@ -159,7 +159,7 @@ export default function OrderDetailPage() {
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                 order.status === 'collected'
                   ? 'bg-green-100 border-2 border-green-500'
-                  : 'bg-gray-100 border-2 border-gray-300'
+                  : 'bg-gray-100 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600'
               }`}>
                 {order.status === 'collected' ? (
                   <CheckCircle2 className="w-6 h-6 text-green-600" />
@@ -181,7 +181,7 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Order Items */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Order Items</h2>
         <div className="space-y-3">
           {order.items.map((item: any, index: number) => (

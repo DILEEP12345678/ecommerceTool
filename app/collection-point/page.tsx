@@ -210,14 +210,19 @@ function CollectionPointContent() {
         ) : (
           <>
             <div className="space-y-3 sm:grid sm:grid-cols-3 sm:gap-3 sm:space-y-0">
-              {orders.map((order: any) => (
-                <OrderCard
+              {orders.map((order: any, index: number) => (
+                <div
                   key={order.orderId}
-                  order={order}
-                  router={router}
-                  onMarkCollected={handleMarkOne}
-                  productImageMap={productImageMap}
-                />
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${index * 45}ms` }}
+                >
+                  <OrderCard
+                    order={order}
+                    router={router}
+                    onMarkCollected={handleMarkOne}
+                    productImageMap={productImageMap}
+                  />
+                </div>
               ))}
             </div>
 
@@ -242,27 +247,39 @@ function CollectionPointContent() {
       </div>
 
       {/* ── MOBILE STATUS BOTTOM TAB BAR ─────────────────── */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 shadow-lg">
-        <div className="flex">
-          {[
-            { key: 'confirmed', label: 'Confirmed', count: stats.confirmed, color: 'text-yellow-500', activeColor: 'text-yellow-700', activeBg: 'bg-yellow-50' },
-            { key: 'packed',    label: 'Packed',    count: stats.packed,    color: 'text-blue-500',   activeColor: 'text-blue-700',   activeBg: 'bg-blue-50'   },
-            { key: 'collected', label: 'Collected', count: stats.collected, color: 'text-green-500',  activeColor: 'text-green-700',  activeBg: 'bg-green-50'  },
-          ].map(({ key, label, count, color, activeColor, activeBg }) => {
-            const isActive = selectedStatus === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setSelectedStatus(key as any)}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-3 transition-colors ${isActive ? activeBg : ''}`}
-              >
-                <span className={`text-lg font-bold leading-none ${isActive ? activeColor : color}`}>{count}</span>
-                <span className={`text-[10px] font-semibold ${isActive ? activeColor : 'text-gray-400'}`}>{label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      {(() => {
+        const cpTabs = [
+          { key: 'confirmed', label: 'Confirmed', count: stats.confirmed, color: 'text-yellow-500', activeColor: 'text-yellow-700', indicatorColor: 'bg-yellow-400' },
+          { key: 'packed',    label: 'Packed',    count: stats.packed,    color: 'text-blue-500',   activeColor: 'text-blue-700',   indicatorColor: 'bg-blue-400'   },
+          { key: 'collected', label: 'Collected', count: stats.collected, color: 'text-green-500',  activeColor: 'text-green-700',  indicatorColor: 'bg-green-400'  },
+        ] as const;
+        const activeIdx = cpTabs.findIndex(t => t.key === selectedStatus);
+        const activeTab = cpTabs[activeIdx];
+        return (
+          <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 shadow-lg bottom-nav">
+            <div className="relative flex">
+              {/* Sliding indicator */}
+              <div
+                className={`absolute top-0 h-0.5 rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] ${activeTab?.indicatorColor ?? 'bg-gray-400'}`}
+                style={{ width: `${100 / cpTabs.length}%`, transform: `translateX(${activeIdx * 100}%)` }}
+              />
+              {cpTabs.map(({ key, label, count, color, activeColor }) => {
+                const isActive = selectedStatus === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedStatus(key as any)}
+                    className="flex-1 flex flex-col items-center justify-center gap-0.5 py-3 transition-colors"
+                  >
+                    <span className={`text-lg font-bold leading-none transition-colors duration-200 ${isActive ? activeColor : color}`}>{count}</span>
+                    <span className={`text-[10px] font-semibold transition-colors duration-200 ${isActive ? activeColor : 'text-gray-400'}`}>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+        );
+      })()}
 
       {/* ── BULK MARK AS COLLECTED CTA ───────────────────── */}
       {selectedStatus === 'packed' && bulkMode && (

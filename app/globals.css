@@ -76,6 +76,27 @@ input[type="radio"], input[type="checkbox"] {
   }
 }
 
+/* ── Clerk sign-in centering ───────────────────────────────── */
+#clerk-container [class*="cl-root"],
+#clerk-container [class*="cl-card"],
+#clerk-container [class*="cl-signIn"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-shadow: none !important;
+}
+
+#clerk-container [class*="cl-footer"],
+#clerk-container [class*="cl-footerAction"],
+#clerk-container [class*="cl-footerPage"] {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
 /* ── DARK MODE ─────────────────────────────────────────────── */
 .dark {
   color-scheme: dark;

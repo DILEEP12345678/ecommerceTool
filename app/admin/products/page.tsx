@@ -405,7 +405,7 @@ export default function ProductsPage() {
                   key={product.productId}
                   className={`grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
                     idx < filteredProducts.length - 1 ? 'border-b border-gray-100' : ''
-                  } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-colors`}
+                  } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-all duration-200`}
                 >
                   <div className="min-w-0">
                     {isEditing ? (

@@ -1,6 +1,6 @@
 {
-  "name": "Collection Point System",
-  "short_name": "CollectPoint",
+  "name": "SquadBid",
+  "short_name": "SquadBid",
   "description": "Order products and collect from your nearest collection point",
   "start_url": "/",
   "display": "standalone",

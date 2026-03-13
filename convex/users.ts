@@ -20,6 +20,55 @@ export const get = query({
   },
 });
 
+// Create or update user from Clerk (called automatically on sign-in)
+export const upsertFromClerk = mutation({
+  args: {
+    clerkId: v.string(),
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+    if (identity.subject !== args.clerkId) throw new Error('Unauthorized');
+
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { name: args.name, email: args.email });
+      return existing._id;
+    }
+
+    return await ctx.db.insert("users", {
+      clerkId: args.clerkId,
+      email: args.email,
+      name: args.name,
+      role: "customer",
+    });
+  },
+});
+
+// Set or update the collection point for the calling customer
+export const updateCollectionPoint = mutation({
+  args: { collectionPoint: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!user) throw new Error('User not found');
+    if (user.role !== 'customer') throw new Error('Only customers can set a collection point here');
+
+    await ctx.db.patch(user._id, { collectionPoint: args.collectionPoint });
+  },
+});
+
 // Create user
 export const create = mutation({
   args: {

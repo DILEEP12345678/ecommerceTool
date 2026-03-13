@@ -14,7 +14,15 @@
       "Bash(cd \"C:/Users/dilee/Documents/project/ecommerce_tool\" && npx @sentry/wizard@latest -i nextjs --saas --org ecommercetool --project javascript-nextjs 2>&1)",
       "Bash(npx convex:*)",
       "Bash(grep -n \"hover\\\\|ArrowLeft\\\\|back\\\\|Back\\\\|dashboard\\\\|Dashboard\" \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\\\\app\\\\collection-point\\\\orders\\\\[orderId]\\\\page.tsx\" 2>/dev/null | head -30)",
-      "Bash(find /Users/dilee/Documents/project/ecommerce_tool -name \"tailwind.config.*\" -o -name \"login\" -type d 2>/dev/null | head -20)"
+      "Bash(find /Users/dilee/Documents/project/ecommerce_tool -name \"tailwind.config.*\" -o -name \"login\" -type d 2>/dev/null | head -20)",
+      "Bash(find /c/Users/dilee/Documents/project/ecommerce_tool -name \"*.test.*\" -o -name \"*.spec.*\" -o -name \"__tests__\" -type d 2>/dev/null | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && npx tsc --noEmit 2>&1)",
+      "WebFetch(domain:www.squadbid.com)",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && node -e \"require\\('canvas'\\)\" 2>&1 | head -3)",
+      "Bash(npm install:*)",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && npx next build 2>&1 | tail -30)",
+      "Bash(node -e \"const {clerkMiddleware} = require\\('C:/Users/dilee/Documents/project/ecommerce_tool/node_modules/@clerk/nextjs/server'\\); console.log\\(typeof clerkMiddleware\\)\")",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && rm -rf .next)"
     ]
   }
 }

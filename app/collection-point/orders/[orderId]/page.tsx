@@ -20,6 +20,7 @@ export default function OrderDetailPage() {
   const orderId = params.orderId as string;
   const { theme } = useTheme();
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt: string } | null>(null);
+  const [flashMessage, setFlashMessage] = useState<string | null>(null);
   const [packedQty, setPackedQty] = useState<Map<number, number>>(() => {
     if (typeof window === 'undefined') return new Map();
     try {
@@ -116,13 +117,17 @@ export default function OrderDetailPage() {
         orderId: order.orderId,
         status: newStatus as any,
       });
-      if (newStatus === 'packed') {
-        localStorage.removeItem(`packed-items-${order.orderId}`);
-        setPackedQty(new Map());
-        router.push('/collection-point');
-      } else if (newStatus === 'collected') {
-        router.push('/collection-point?tab=packed');
-      }
+      const msg = newStatus === 'packed' ? 'Marked as Packed!' : 'Marked as Collected!';
+      setFlashMessage(msg);
+      setTimeout(() => {
+        if (newStatus === 'packed') {
+          localStorage.removeItem(`packed-items-${order.orderId}`);
+          setPackedQty(new Map());
+          router.push('/collection-point');
+        } else if (newStatus === 'collected') {
+          router.push('/collection-point?tab=packed');
+        }
+      }, 700);
     } catch {
       toast.error('Failed to update order status. Please try again.');
     }
@@ -413,6 +418,16 @@ export default function OrderDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Success flash overlay */}
+      {flashMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none animate-success-flash">
+          <div className="flex flex-col items-center gap-3 bg-green-500 text-white px-10 py-8 rounded-3xl shadow-2xl">
+            <CheckCircle2 className="w-14 h-14" />
+            <p className="text-xl font-bold">{flashMessage}</p>
+          </div>
+        </div>
+      )}
 
       {/* Image zoom modal */}
       {zoomedImage && (
