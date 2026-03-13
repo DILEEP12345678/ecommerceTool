@@ -435,7 +435,7 @@ const OrderCard = memo(({ order, router, cpParam, onMarkCollected, productImageM
   return (
     <div
       onClick={() => router.push(`/collection-point/orders/${order.orderId}${cpParam ? `?cp=${encodeURIComponent(cpParam)}` : ''}`)}
-      className={`bg-white rounded-2xl shadow-sm border border-transparent hover:shadow-md transition-all cursor-pointer active:scale-[0.99] overflow-hidden flex flex-col ${
+      className={`bg-white rounded-2xl shadow-md border border-transparent hover:shadow-lg transition-all cursor-pointer active:scale-[0.99] overflow-hidden flex flex-col ${
         order.status === 'packed' ? 'h-[248px]' :
         order.status === 'confirmed' ? 'h-[200px]' : 'h-[190px]'
       }`}

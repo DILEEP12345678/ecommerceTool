@@ -233,7 +233,7 @@ export default function AllOrdersPage() {
 const OrderCard = memo(({ order, router, getImage }: { order: any; router: any; getImage: (itemId: string, itemName: string) => string | undefined }) => (
   <div
     onClick={() => router.push(`/admin/orders/${order.orderId}`)}
-    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700 transition-all cursor-pointer"
+    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700 transition-all cursor-pointer"
   >
     <div className="flex items-center justify-between mb-2">
       <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Order #{order.orderId.split('-')[1]}</p>
