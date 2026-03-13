@@ -22,7 +22,16 @@
       "Bash(npm install:*)",
       "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && npx next build 2>&1 | tail -30)",
       "Bash(node -e \"const {clerkMiddleware} = require\\('C:/Users/dilee/Documents/project/ecommerce_tool/node_modules/@clerk/nextjs/server'\\); console.log\\(typeof clerkMiddleware\\)\")",
-      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && rm -rf .next)"
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && rm -rf .next)",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && node -e \"require\\('recharts'\\); console.log\\('recharts ok'\\)\" 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && rm -rf .next 2>&1 && echo \"cleared\")",
+      "Bash(node -e \"console.log\\(require\\('C:/Users/dilee/Documents/project/ecommerce_tool/node_modules/supports-color/package.json'\\).version\\)\")",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && rm -rf .next && echo \"cache cleared\")",
+      "Bash(cd \"C:\\\\Users\\\\dilee\\\\Documents\\\\project\\\\ecommerce_tool\" && npx tsc --noEmit 2>&1 | head -40)",
+      "Bash(find C:/Users/dilee/Documents/project/ecommerce_tool/node_modules -name \"package.json\" -path \"*/supports-color/package.json\" 2>/dev/null | head -10)",
+      "Bash(find C:/Users/dilee/Documents/project/ecommerce_tool/node_modules -name \"package.json\" -path \"*/debug/package.json\" 2>/dev/null | xargs grep -l '\"version\"' | head -5)",
+      "Bash(node -e \"const d = require\\('C:/Users/dilee/Documents/project/ecommerce_tool/node_modules/debug'\\); console.log\\('debug ok'\\)\" 2>&1)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

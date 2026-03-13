@@ -8,7 +8,7 @@ async function requireAdmin(ctx: MutationCtx) {
     .query("users")
     .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
     .first();
-  const callerRoles = caller?.roles ?? (caller?.role ? [caller.role] : []);
+  const callerRoles = caller?.roles ?? ((caller as any)?.role ? [(caller as any).role] : []);
   if (!caller || !callerRoles.includes('admin')) throw new Error('Unauthorized: admins only');
 }
 

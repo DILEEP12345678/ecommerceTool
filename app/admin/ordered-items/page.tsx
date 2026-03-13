@@ -3,14 +3,14 @@
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { ChevronDown, Loader2, MapPin, Package, X } from 'lucide-react';
-import { useUser, useUserLoaded } from '../../../components/UserContext';
+import { useHasRole, useUserLoaded } from '../../../components/UserContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useLastUpdated } from '../../../lib/useLastUpdated';
 
 export default function OrderedItemsPage() {
   const router = useRouter();
-  const user = useUser();
+  const isAdmin = useHasRole('admin');
   const loaded = useUserLoaded();
   const [selectedCollectionPoint, setSelectedCollectionPoint] = useState<string>('all');
   const [cpOpen, setCpOpen] = useState(false);
@@ -18,8 +18,8 @@ export default function OrderedItemsPage() {
 
   useEffect(() => {
     if (!loaded) return;
-    if (!user || user.role !== 'admin') router.push('/login');
-  }, [user, router, loaded]);
+    if (!isAdmin) router.push('/login');
+  }, [isAdmin, router, loaded]);
 
   const confirmedItemsList = useQuery(api.orders.getConfirmedItemsSummary, {
     collectionPoint: selectedCollectionPoint === 'all' ? undefined : selectedCollectionPoint,
@@ -100,7 +100,7 @@ export default function OrderedItemsPage() {
       </div>
 
       {/* Product cards */}
-      <div className="px-4 pt-4 max-w-lg mx-auto">
+      <div className="px-4 pt-4 max-w-7xl mx-auto">
         {confirmedItemsList === undefined ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-7 h-7 text-primary-400 animate-spin" />
@@ -112,13 +112,12 @@ export default function OrderedItemsPage() {
             <p className="text-xs text-gray-400 mt-1">Items appear here when orders are confirmed</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {confirmedItemsList.map((product: any) => {
               const imgSrc = getImage(product.baseId, product.productName);
 
               return (
                 <div key={product.baseId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                  {/* Product header row */}
                   <div className="flex items-center px-4 py-3.5 gap-3">
                     <div
                       className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 cursor-zoom-in relative group"
@@ -137,8 +136,6 @@ export default function OrderedItemsPage() {
                       <p className="text-xs text-gray-400">{product.baseId}</p>
                     </div>
                   </div>
-
-                  {/* Variant sub-rows — always shown */}
                   <div className="border-t border-gray-200/30 divide-y divide-gray-200/30">
                     {product.variants.map((v: any) => (
                       <div key={v.itemId} className="flex items-center justify-between px-4 py-2.5">

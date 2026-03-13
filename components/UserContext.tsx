@@ -13,7 +13,6 @@ interface AppUser {
   email: string;
   name: string;
   roles: Role[];
-  role?: Role; // legacy
   collectionPoint?: string;
 }
 
@@ -41,7 +40,10 @@ export function useCollectionPoint() { return useContext(UserContext).user?.coll
 export function useUserRoles(): Role[] {
   const user = useContext(UserContext).user;
   if (!user) return [];
-  return user.roles ?? (user.role ? [user.role] : ['customer']);
+  if (user.roles?.length) return user.roles;
+  // Legacy fallback for unmigrated users with singular `role` field
+  const legacyRole = (user as any).role as Role | undefined;
+  return legacyRole ? [legacyRole] : [];
 }
 
 /** Primary role (highest privilege): admin > collection_point_manager > customer */
@@ -66,11 +68,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const upsert = useMutation(api.users.upsertFromClerk);
 
-  // Auto-create Convex user record on first Clerk sign-in
+  // Auto-create Convex user record on first Clerk sign-in, or migrate existing users missing `roles`
   useEffect(() => {
     if (!clerkLoaded || !clerkUser) return;
     if (convexUser === undefined) return; // still loading
-    if (convexUser !== null) return;      // already exists
+    // Skip if user exists and already has roles populated
+    if (convexUser !== null && (convexUser as any).roles?.length > 0) return;
 
     upsert({
       clerkId: clerkUser.id,

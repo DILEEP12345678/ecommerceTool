@@ -39,7 +39,7 @@ export default function LoginPage() {
     return (
       <div className="min-h-screen bg-white flex">
         {/* Left panel — branding */}
-        <div className="hidden lg:flex lg:w-[52%] bg-gradient-to-br from-primary-600 via-primary-500 to-emerald-400 relative overflow-hidden flex-col justify-between p-12">
+        <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-col justify-between p-12" style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' }}>
           {/* Background blobs */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
@@ -103,6 +103,7 @@ export default function LoginPage() {
             </div>
 
             <SignIn
+              routing="hash"
               fallbackRedirectUrl="/login"
               signUpFallbackRedirectUrl="/login"
               appearance={{
@@ -156,8 +157,7 @@ export default function LoginPage() {
                   </div>
                 </button>
 
-                {userRoles.includes('collection_point_manager') && (
-                  <button
+                <button
                     onClick={() => router.replace('/collection-point')}
                     className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-primary-300 hover:bg-primary-50 transition-all duration-150 text-left group"
                   >
@@ -169,7 +169,6 @@ export default function LoginPage() {
                       <p className="text-xs text-gray-500 mt-0.5">Manage orders & packing</p>
                     </div>
                   </button>
-                )}
 
                 {userRoles.includes('customer') && appUser.collectionPoint && (
                   <button
@@ -194,7 +193,7 @@ export default function LoginPage() {
   }
 
   // Collection point selection step
-  const roles = appUser.roles ?? (appUser.role ? [appUser.role] : ['customer']);
+  const roles = appUser.roles;
   if (roles.includes('customer') && !appUser.collectionPoint) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -3,27 +3,37 @@
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { ArrowLeft, Loader2, Package, RotateCcw, ShoppingCart, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useCollectionPoint, useUser, useUserLoaded } from '../../../components/UserContext';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCollectionPoint, useHasRole, useUserLoaded } from '../../../components/UserContext';
+import { useEffect, useState, Suspense } from 'react';
 import { useLastUpdated } from '../../../lib/useLastUpdated';
 
 export default function PackListPage() {
+  return (
+    <Suspense>
+      <PackListContent />
+    </Suspense>
+  );
+}
+
+function PackListContent() {
   const router = useRouter();
-  const user = useUser();
+  const searchParams = useSearchParams();
+  const isManager = useHasRole('collection_point_manager');
+  const isAdmin = useHasRole('admin');
   const loaded = useUserLoaded();
-  const collectionPoint = useCollectionPoint();
+  const userCollectionPoint = useCollectionPoint();
+  const cpParam = searchParams.get('cp');
+  const collectionPoint = isAdmin ? (cpParam ?? userCollectionPoint) : userCollectionPoint;
 
   useEffect(() => {
     if (!loaded) return;
-    if (!user || user.role !== 'collection_point_manager') {
-      router.push('/login');
-    }
-  }, [user, router, loaded]);
+    if (!isManager && !isAdmin) router.push('/login');
+  }, [isManager, isAdmin, router, loaded]);
 
   const confirmedItemsList = useQuery(
     api.orders.getConfirmedItemsSummary,
-    collectionPoint ? { collectionPoint } : 'skip'
+    { collectionPoint: collectionPoint ?? undefined }
   );
 
   const productRows = useQuery(api.products.list);
@@ -41,7 +51,7 @@ export default function PackListPage() {
   };
 
   // ── Tick-off state ───────────────────────────────────────
-  const storageKey = `pack-list-checked-${collectionPoint}`;
+  const storageKey = `pack-list-checked-${collectionPoint ?? 'all'}`;
   const [checked, setChecked] = useState<Set<string>>(() => {
     if (typeof window === 'undefined') return new Set();
     try {
@@ -78,7 +88,7 @@ export default function PackListPage() {
       {/* Sticky top bar */}
       <div className="sticky top-14 z-10 bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700">
         <button
-          onClick={() => router.push('/collection-point')}
+          onClick={() => router.back()}
           className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors -ml-1 flex-shrink-0"
           aria-label="Back to dashboard"
         >
@@ -109,7 +119,7 @@ export default function PackListPage() {
         )}
       </div>
 
-      <div className="px-4 pt-4 max-w-lg mx-auto">
+      <div className="px-4 pt-4 max-w-7xl mx-auto">
         {confirmedItemsList === undefined ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-7 h-7 text-primary-400 animate-spin" />
@@ -121,7 +131,7 @@ export default function PackListPage() {
             <p className="text-xs text-gray-400 mt-1">All confirmed orders are packed</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {confirmedItemsList.map((product: any) => {
               const imgSrc = getImage(product.baseId, product.productName);
               const isProductChecked = product.variants.every((v: any) => checked.has(v.itemId));
