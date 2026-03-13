@@ -12,7 +12,8 @@ export default defineSchema({
     sensitivity: v.string(),             // key from SENSITIVITY_GROUPS in lib/bagPlan.ts
     price:       v.optional(v.number()), // price per unit in pence (integer, e.g. 150 = £1.50)
     unit:        v.optional(v.string()), // measurement unit: each | kg | g | litre | dozen | pack | bunch
-    available:   v.optional(v.boolean()),
+    available:         v.optional(v.boolean()),
+    collectionPoints:  v.optional(v.array(v.string())), // CPs where this product is stocked; undefined/empty = all CPs
     variants:    v.optional(v.array(v.object({
       label:   v.string(),  // e.g. "500g", "1kg", "6 pack"
       price:   v.number(),  // pence

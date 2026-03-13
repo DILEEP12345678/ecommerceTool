@@ -40,7 +40,7 @@ const DEFAULT_PRODUCTS = [
     ],
   },
   {
-    productId: "PROD-005", name: "Eggs", sensitivity: "sensitive", price: 150, unit: "pack",
+    productId: "PROD-005", name: "Eggs", sensitivity: "extreme-sensitive", price: 150, unit: "pack",
     image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop",
     variants: [
       { label: "6 Pack",  price: 150, weightG: 350 },
@@ -98,10 +98,7 @@ const DEFAULT_PRODUCTS = [
 
 export const list = query({
   handler: async (ctx) => {
-    const rows = await ctx.db.query("products").collect();
-    if (rows.length > 0) return rows;
-    // Fall back to defaults while table is empty (before first seed)
-    return DEFAULT_PRODUCTS.map(p => ({ ...p, available: true }));
+    return await ctx.db.query("products").collect();
   },
 });
 
@@ -148,13 +145,14 @@ export const upsert = mutation({
 
 export const update = mutation({
   args: {
-    productId:   v.string(),
-    sensitivity: v.optional(v.string()),
-    price:       v.optional(v.number()),
-    unit:        v.optional(v.string()),
-    name:        v.optional(v.string()),
-    available:   v.optional(v.boolean()),
-    variants:    v.optional(v.array(v.object({
+    productId:        v.string(),
+    sensitivity:      v.optional(v.string()),
+    price:            v.optional(v.number()),
+    unit:             v.optional(v.string()),
+    name:             v.optional(v.string()),
+    available:        v.optional(v.boolean()),
+    collectionPoints: v.optional(v.array(v.string())),
+    variants:         v.optional(v.array(v.object({
       label:   v.string(),
       price:   v.number(),
       weightG: v.number(),
@@ -188,6 +186,15 @@ export const remove = mutation({
 // Seed the table with default products (inserts or updates all defaults)
 export const seed = mutation({
   handler: async (ctx) => {
+    // Collect all known collection points from managers
+    const managers = await ctx.db
+      .query("users")
+      .withIndex("by_role", q => q.eq("role", "collection_point_manager"))
+      .collect();
+    const allCPs: string[] = [...new Set(
+      managers.map((m: any) => m.collectionPoint).filter(Boolean) as string[]
+    )];
+
     for (const p of DEFAULT_PRODUCTS) {
       const existing = await ctx.db
         .query("products")
@@ -195,16 +202,17 @@ export const seed = mutation({
         .first();
       if (existing) {
         await ctx.db.patch(existing._id, {
-          name:        p.name,
-          image:       p.image,
-          sensitivity: p.sensitivity,
-          price:       p.price,
-          unit:        p.unit,
-          variants:    p.variants,
-          available:   true,
+          name:             p.name,
+          image:            p.image,
+          sensitivity:      p.sensitivity,
+          price:            p.price,
+          unit:             p.unit,
+          variants:         p.variants,
+          available:        true,
+          collectionPoints: existing.collectionPoints ?? allCPs,
         });
       } else {
-        await ctx.db.insert("products", { ...p, available: true });
+        await ctx.db.insert("products", { ...p, available: true, collectionPoints: allCPs });
       }
     }
   },

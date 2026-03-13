@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { Check, Layers, Loader2, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Layers, Loader2, MapPin, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -56,14 +56,17 @@ export default function ProductsPage() {
   const user = useUser();
   const loaded = useUserLoaded();
   const products = useQuery(api.products.list);
+  const collectionPoints = useQuery(api.users.getCollectionPoints) ?? [];
   const seedMutation = useMutation(api.products.seed);
   const updateMutation = useMutation(api.products.update);
   const removeMutation = useMutation(api.products.remove);
 
+  const [selectedCP, setSelectedCP] = useState<string>('all');
+  const [cpOpen, setCpOpen] = useState(false);
   const [editing, setEditing] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
-  const [variantManager, setVariantManager] = useState<any | null>(null); // product being edited for variants
+  const [variantManager, setVariantManager] = useState<any | null>(null);
   const [newVariant, setNewVariant] = useState({ label: '', price: '', weightG: '' });
 
   useEffect(() => {
@@ -123,6 +126,14 @@ export default function ProductsPage() {
     setVariantManager((prev: any) => ({ ...prev, variants: updated }));
   };
 
+  const handleToggleCP = async (product: any, cp: string) => {
+    const current: string[] = product.collectionPoints ?? [];
+    const next = current.includes(cp)
+      ? current.filter((c: string) => c !== cp)
+      : [...current, cp];
+    await updateMutation({ productId: product.productId, collectionPoints: next });
+  };
+
   const handleRemove = async (productId: string, name: string) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
     try {
@@ -136,8 +147,60 @@ export default function ProductsPage() {
   // Real DB rows have _creationTime set by Convex; fallback objects don't
   const isSeeded = (products ?? []).some((p: any) => p._creationTime != null);
 
+  // When a CP is selected show ALL products so admin can toggle each one's stocking status
+  const filteredProducts = products ?? [];
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24 sm:pb-6">
+
+      {/* ── Sticky CP filter bar ── */}
+      <div className="sticky top-14 z-10 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shadow-sm -mx-4 px-4 py-2.5 mb-4 flex items-center justify-between gap-3">
+        <div className="relative">
+          <button
+            onClick={() => setCpOpen(o => !o)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
+              selectedCP !== 'all'
+                ? 'bg-primary-50 border-primary-300 text-primary-700'
+                : 'bg-white border-gray-200 text-gray-500'
+            }`}
+          >
+            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{selectedCP === 'all' ? 'All Collection Points' : selectedCP}</span>
+            <ChevronDown className={`w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${cpOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {cpOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setCpOpen(false)} />
+              <div className="absolute left-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 min-w-[220px]">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1">Collection points</p>
+                <div className="flex flex-col">
+                  {[{ value: 'all', label: 'All Collection Points' }, ...collectionPoints.map((cp: string) => ({ value: cp, label: cp }))].map((item, idx, arr) => (
+                    <button
+                      key={item.value}
+                      onClick={() => { setSelectedCP(item.value); setCpOpen(false); }}
+                      className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl ${
+                        selectedCP === item.value ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'
+                      } ${idx < arr.length - 1 ? 'border-b border-gray-100' : ''}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${selectedCP === item.value ? 'text-primary-500' : 'text-gray-400'}`} />
+                        {item.label}
+                      </div>
+                      {selectedCP === item.value && <div className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        {selectedCP !== 'all' && products && (
+          <span className="text-xs text-gray-400 font-semibold">
+            {(products as any[]).filter((p: any) => (p.collectionPoints ?? []).includes(selectedCP)).length} / {products.length} stocked
+          </span>
+        )}
+      </div>
+
       {/* Seed button + count */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -182,7 +245,7 @@ export default function ProductsPage() {
 
           {/* ── Mobile card list (hidden on sm+) ── */}
           <div className="sm:hidden divide-y divide-gray-100">
-            {products.filter(Boolean).map((product: any) => {
+            {filteredProducts.filter(Boolean).map((product: any) => {
               const isEditing = editing?.productId === product.productId;
               const editingState = isEditing ? editing! : null;
               const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
@@ -252,14 +315,25 @@ export default function ProductsPage() {
                           </span>
                           <span className="text-xs text-gray-400">·</span>
                           <span className="text-xs text-gray-500">{sensitivityLabel}</span>
-                          <button
-                            onClick={() => updateMutation({ productId: product.productId, available: !available })}
-                            className={`px-2 py-0.5 rounded-md text-xs font-bold transition-colors ${
-                              available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
-                            }`}
-                          >
-                            {available ? 'In Stock' : 'Off'}
-                          </button>
+                          {selectedCP === 'all' ? (
+                            <button
+                              onClick={() => updateMutation({ productId: product.productId, available: !available })}
+                              className={`px-2 py-0.5 rounded-md text-xs font-bold transition-colors ${
+                                available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              {available ? 'In Stock' : 'Off'}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleCP(product, selectedCP)}
+                              className={`px-2 py-0.5 rounded-md text-xs font-bold transition-colors ${
+                                (product.collectionPoints ?? []).includes(selectedCP) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              {(product.collectionPoints ?? []).includes(selectedCP) ? 'Stocked' : 'Not here'}
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
@@ -303,7 +377,7 @@ export default function ProductsPage() {
               <span></span>
             </div>
 
-            {products.filter(Boolean).map((product: any, idx: number) => {
+            {filteredProducts.filter(Boolean).map((product: any, idx: number) => {
               const isEditing = editing?.productId === product.productId;
               const editingState = isEditing ? editing! : null;
               const sensitivityLabel = SENSITIVITY_OPTIONS.find(o => o.value === product.sensitivity)?.label ?? product.sensitivity;
@@ -313,7 +387,7 @@ export default function ProductsPage() {
                 <div
                   key={product.productId}
                   className={`grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
-                    idx < products.length - 1 ? 'border-b border-gray-100' : ''
+                    idx < filteredProducts.length - 1 ? 'border-b border-gray-100' : ''
                   } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-colors`}
                 >
                   <div className="min-w-0">
@@ -380,14 +454,25 @@ export default function ProductsPage() {
                   </div>
 
                   <div>
-                    <button
-                      onClick={() => updateMutation({ productId: product.productId, available: !available })}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
-                        available ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                      }`}
-                    >
-                      {available ? 'In Stock' : 'Off'}
-                    </button>
+                    {selectedCP === 'all' ? (
+                      <button
+                        onClick={() => updateMutation({ productId: product.productId, available: !available })}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                          available ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                        }`}
+                      >
+                        {available ? 'In Stock' : 'Off'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleToggleCP(product, selectedCP)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                          (product.collectionPoints ?? []).includes(selectedCP) ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                        }`}
+                      >
+                        {(product.collectionPoints ?? []).includes(selectedCP) ? 'Stocked' : 'Not here'}
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-end gap-1">
