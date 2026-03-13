@@ -18,7 +18,8 @@ export default function LoginPage() {
   const [saving, setSaving] = useState(false);
   const [showRoleChooser, setShowRoleChooser] = useState(false);
 
-  const collectionPoints = useQuery(api.users.getCollectionPoints) ?? [];
+  const collectionPointsResult = useQuery(api.users.getCollectionPoints);
+  const collectionPoints = collectionPointsResult ?? [];
   const updateCP = useMutation(api.users.updateCollectionPoint);
 
   useEffect(() => {
@@ -215,9 +216,13 @@ export default function LoginPage() {
               </div>
 
               {/* Collection point list */}
-              {collectionPoints.length === 0 ? (
+              {collectionPointsResult === undefined ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-7 h-7 text-primary-400 animate-spin" />
+                </div>
+              ) : collectionPoints.length === 0 ? (
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-sm text-gray-500 text-center">No collection points available yet.</p>
                 </div>
               ) : (
                 <div className="space-y-2.5 mb-7">
