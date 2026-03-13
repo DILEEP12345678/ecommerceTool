@@ -8,7 +8,8 @@ async function requireAdmin(ctx: MutationCtx) {
     .query("users")
     .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
     .first();
-  if (!caller || caller.role !== 'admin') throw new Error('Unauthorized: admins only');
+  const callerRoles = caller?.roles ?? (caller?.role ? [caller.role] : []);
+  if (!caller || !callerRoles.includes('admin')) throw new Error('Unauthorized: admins only');
 }
 
 // ── Default product catalogue ─────────────────────────────────────────────────
@@ -201,10 +202,11 @@ export const seed = mutation({
   handler: async (ctx) => {
     await requireAdmin(ctx);
     // Collect all known collection points from managers
-    const managers = await ctx.db
-      .query("users")
-      .withIndex("by_role", q => q.eq("role", "collection_point_manager"))
-      .collect();
+    const allUsers = await ctx.db.query("users").collect();
+    const managers = allUsers.filter((u: any) => {
+      const roles = u.roles ?? (u.role ? [u.role] : []);
+      return roles.includes("collection_point_manager");
+    });
     const allCPs: string[] = [...new Set(
       managers.map((m: any) => m.collectionPoint).filter(Boolean) as string[]
     )];

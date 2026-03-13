@@ -2,29 +2,34 @@
 
 import { SignIn, useUser as useClerkUser } from '@clerk/nextjs';
 import { useMutation, useQuery } from 'convex/react';
-import { CheckCircle2, Loader2, MapPin, ShoppingBag, Truck } from 'lucide-react';
+import { CheckCircle2, Loader2, MapPin, Package, Shield, ShoppingBag, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../convex/_generated/api';
-import { useUser, useUserLoaded } from '../../components/UserContext';
+import { useUser, useUserLoaded, useUserRoles } from '../../components/UserContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { isSignedIn, isLoaded: clerkLoaded } = useClerkUser();
   const appUser = useUser();
   const appLoaded = useUserLoaded();
+  const userRoles = useUserRoles();
   const [selectedCP, setSelectedCP] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showRoleChooser, setShowRoleChooser] = useState(false);
 
   const collectionPoints = useQuery(api.users.getCollectionPoints) ?? [];
   const updateCP = useMutation(api.users.updateCollectionPoint);
 
   useEffect(() => {
     if (!appLoaded || !appUser) return;
-    if (appUser.role === 'admin') router.replace('/admin');
-    else if (appUser.role === 'collection_point_manager') router.replace('/collection-point');
-    else if (appUser.role === 'customer' && appUser.collectionPoint) router.replace('/store');
-  }, [appUser, appLoaded, router]);
+    if (userRoles.includes('admin')) {
+      setShowRoleChooser(true);
+      return;
+    }
+    if (userRoles.includes('collection_point_manager')) router.replace('/collection-point');
+    else if (userRoles.includes('customer') && appUser.collectionPoint) router.replace('/store');
+  }, [appUser, appLoaded, userRoles, router]);
 
   if (!clerkLoaded || !appLoaded) return <Spinner />;
 
@@ -96,9 +101,8 @@ export default function LoginPage() {
             </div>
 
             <SignIn
-              routing="hash"
-              afterSignInUrl="/login"
-              afterSignUpUrl="/login"
+              fallbackRedirectUrl="/login"
+              signUpFallbackRedirectUrl="/login"
               appearance={{
                 elements: {
                   headerTitle: 'hidden',
@@ -118,8 +122,78 @@ export default function LoginPage() {
 
   if (!appUser) return <Spinner />;
 
+  // Role chooser for admins
+  if (showRoleChooser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm animate-fade-in-up">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="h-1.5 bg-gradient-to-r from-primary-400 via-primary-500 to-emerald-400" />
+            <div className="p-8">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <img src="/logo.png" alt="SquadBid" className="w-8 h-8 object-contain mix-blend-multiply" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">Welcome back</h1>
+                  <p className="text-sm text-gray-500 mt-0.5">Where would you like to go?</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => router.replace('/admin')}
+                  className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-primary-300 hover:bg-primary-50 transition-all duration-150 text-left group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 group-hover:bg-primary-500 group-hover:border-primary-500 flex items-center justify-center flex-shrink-0 transition-colors">
+                    <Shield className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">Admin Dashboard</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Manage products, orders & users</p>
+                  </div>
+                </button>
+
+                {userRoles.includes('collection_point_manager') && (
+                  <button
+                    onClick={() => router.replace('/collection-point')}
+                    className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-primary-300 hover:bg-primary-50 transition-all duration-150 text-left group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 group-hover:bg-primary-500 group-hover:border-primary-500 flex items-center justify-center flex-shrink-0 transition-colors">
+                      <Package className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-gray-900">Collection Point</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Manage orders & packing</p>
+                    </div>
+                  </button>
+                )}
+
+                {userRoles.includes('customer') && appUser.collectionPoint && (
+                  <button
+                    onClick={() => router.replace('/store')}
+                    className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-primary-300 hover:bg-primary-50 transition-all duration-150 text-left group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 group-hover:bg-primary-500 group-hover:border-primary-500 flex items-center justify-center flex-shrink-0 transition-colors">
+                      <ShoppingBag className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-gray-900">Store</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Browse & order products</p>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Collection point selection step
-  if (appUser.role === 'customer' && !appUser.collectionPoint) {
+  const roles = appUser.roles ?? (appUser.role ? [appUser.role] : ['customer']);
+  if (roles.includes('customer') && !appUser.collectionPoint) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-up">

@@ -5,12 +5,15 @@ import { useMutation, useQuery } from 'convex/react';
 import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { api } from '../convex/_generated/api';
 
+type Role = 'customer' | 'collection_point_manager' | 'admin';
+
 interface AppUser {
   _id: string;
   clerkId: string;
   email: string;
   name: string;
-  role: 'customer' | 'collection_point_manager' | 'admin';
+  roles: Role[];
+  role?: Role; // legacy
   collectionPoint?: string;
 }
 
@@ -21,12 +24,37 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType>({ user: null, loaded: false });
 
+// Priority order: admin > collection_point_manager > customer
+function getPrimaryRole(roles: Role[]): Role {
+  if (roles.includes('admin')) return 'admin';
+  if (roles.includes('collection_point_manager')) return 'collection_point_manager';
+  return 'customer';
+}
+
 export function useUser() { return useContext(UserContext).user; }
 export function useUserLoaded() { return useContext(UserContext).loaded; }
 export function useUserId() { return useContext(UserContext).user?._id ?? null; }
 export function useUsername() { return useContext(UserContext).user?.name ?? null; }
-export function useUserRole() { return useContext(UserContext).user?.role ?? null; }
 export function useCollectionPoint() { return useContext(UserContext).user?.collectionPoint ?? null; }
+
+/** All roles assigned to the user */
+export function useUserRoles(): Role[] {
+  const user = useContext(UserContext).user;
+  if (!user) return [];
+  return user.roles ?? (user.role ? [user.role] : ['customer']);
+}
+
+/** Primary role (highest privilege): admin > collection_point_manager > customer */
+export function useUserRole(): Role | null {
+  const roles = useUserRoles();
+  if (roles.length === 0) return null;
+  return getPrimaryRole(roles);
+}
+
+/** Check if user has a specific role */
+export function useHasRole(role: Role): boolean {
+  return useUserRoles().includes(role);
+}
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const { user: clerkUser, isLoaded: clerkLoaded } = useClerkUser();

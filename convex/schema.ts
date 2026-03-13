@@ -24,13 +24,13 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     name: v.string(),
-    role: v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin")),
-    collectionPoint: v.optional(v.string()), // For collection point managers
+    roles: v.array(v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin"))),
+    role: v.optional(v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin"))), // legacy
+    collectionPoint: v.optional(v.string()),
     clerkId: v.string(),
   })
     .index("by_email", ["email"])
-    .index("by_clerk_id", ["clerkId"])
-    .index("by_role", ["role"]),
+    .index("by_clerk_id", ["clerkId"]),
 
   orders: defineTable({
     orderId: v.string(),

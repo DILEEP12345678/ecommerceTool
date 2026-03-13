@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+const ROLE = v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin"));
+
 // Get user by Clerk ID
 export const getByClerkId = query({
   args: { clerkId: v.string() },
@@ -38,7 +40,9 @@ export const upsertFromClerk = mutation({
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, { name: args.name, email: args.email });
+      // Migrate legacy `role` field to `roles` array if needed
+      const roles = existing.roles ?? (existing.role ? [existing.role] : ["customer"]);
+      await ctx.db.patch(existing._id, { name: args.name, email: args.email, roles });
       return existing._id;
     }
 
@@ -46,7 +50,7 @@ export const upsertFromClerk = mutation({
       clerkId: args.clerkId,
       email: args.email,
       name: args.name,
-      role: "customer",
+      roles: ["customer"],
     });
   },
 });
@@ -63,9 +67,32 @@ export const updateCollectionPoint = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .first();
     if (!user) throw new Error('User not found');
-    if (user.role !== 'customer') throw new Error('Only customers can set a collection point here');
+
+    const roles = user.roles ?? (user.role ? [user.role] : ["customer"]);
+    if (!roles.includes('customer')) throw new Error('Only customers can set a collection point here');
 
     await ctx.db.patch(user._id, { collectionPoint: args.collectionPoint });
+  },
+});
+
+// Update roles for a user (admin only)
+export const updateRoles = mutation({
+  args: {
+    userId: v.id("users"),
+    roles: v.array(ROLE),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    const callerRoles = caller?.roles ?? (caller?.role ? [caller.role] : []);
+    if (!callerRoles.includes('admin')) throw new Error('Unauthorized: admins only');
+
+    await ctx.db.patch(args.userId, { roles: args.roles });
   },
 });
 
@@ -75,20 +102,17 @@ export const create = mutation({
     email: v.string(),
     name: v.string(),
     clerkId: v.string(),
-    role: v.optional(
-      v.union(v.literal("customer"), v.literal("collection_point_manager"))
-    ),
+    roles: v.optional(v.array(ROLE)),
     collectionPoint: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await ctx.db.insert("users", {
+    return await ctx.db.insert("users", {
       email: args.email,
       name: args.name,
       clerkId: args.clerkId,
-      role: args.role || "customer",
+      roles: args.roles ?? ["customer"],
       collectionPoint: args.collectionPoint,
     });
-    return userId;
   },
 });
 
@@ -99,16 +123,41 @@ export const listAll = query({
   },
 });
 
-// Get collection points list
+// Get collection points list (from users with collection_point_manager role)
 export const getCollectionPoints = query({
   handler: async (ctx) => {
-    const managers = await ctx.db
-      .query("users")
-      .withIndex("by_role", (q) => q.eq("role", "collection_point_manager"))
-      .collect();
+    const allUsers = await ctx.db.query("users").collect();
+    return allUsers
+      .filter((u) => {
+        const roles = u.roles ?? (u.role ? [u.role] : []);
+        return roles.includes("collection_point_manager") && u.collectionPoint;
+      })
+      .map((u) => u.collectionPoint as string);
+  },
+});
 
-    return managers
-      .filter((m) => m.collectionPoint)
-      .map((m) => m.collectionPoint as string);
+// Migrate all legacy `role` fields to `roles` arrays (run once)
+export const migrateRolesToArray = mutation({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    const callerRoles = caller?.roles ?? (caller?.role ? [caller.role] : []);
+    if (!callerRoles.includes('admin')) throw new Error('Unauthorized: admins only');
+
+    const users = await ctx.db.query("users").collect();
+    let migrated = 0;
+    for (const user of users) {
+      if (!user.roles) {
+        const roles = user.role ? [user.role] : ["customer"];
+        await ctx.db.patch(user._id, { roles });
+        migrated++;
+      }
+    }
+    return { migrated };
   },
 });

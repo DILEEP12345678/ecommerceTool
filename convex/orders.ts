@@ -24,7 +24,8 @@ export const create = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .first();
     if (!caller) throw new Error('User not found');
-    if (caller.role !== 'customer') throw new Error('Only customers can place orders');
+    const callerRoles = caller.roles ?? (caller.role ? [caller.role] : []);
+    if (!callerRoles.includes('customer')) throw new Error('Only customers can place orders');
 
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const createdAt = Date.now();
@@ -161,7 +162,8 @@ export const updateStatus = mutation({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .first();
-    if (!caller || (caller.role !== 'collection_point_manager' && caller.role !== 'admin')) {
+    const callerRoles = caller?.roles ?? (caller?.role ? [caller.role] : []);
+    if (!caller || (!callerRoles.includes('collection_point_manager') && !callerRoles.includes('admin'))) {
       throw new Error('Unauthorized');
     }
 
