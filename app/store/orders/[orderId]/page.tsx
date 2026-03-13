@@ -61,31 +61,26 @@ export default function OrderDetailPage() {
       </button>
 
       {/* Order Header */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-6 mb-5">
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">
-              Order #{order.orderId.split('-')[1]}
-            </h1>
-            <div className="flex items-center gap-2 text-gray-600 mb-2">
-              <MapPin className="w-5 h-5 text-gray-400" />
-              <span className="text-base">Collection Point: <strong>{order.collectionPoint}</strong></span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-500">
-              <Clock className="w-5 h-5 text-gray-400" />
-              <span className="text-base">
-                {new Date(order.createdAt).toLocaleString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
-            </div>
-          </div>
-          <span className={`px-4 py-2 text-base font-bold rounded-xl ${getStatusColor(order.status)}`}>
+      <div className="bg-white rounded-2xl border-2 border-gray-100 p-4 sm:p-6 mb-5">
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Order #{order.orderId.split('-')[1]}
+          </h1>
+          <span className={`flex-shrink-0 px-2.5 py-1 text-xs sm:text-sm font-bold rounded-xl ${getStatusColor(order.status)}`}>
             {order.status.toUpperCase()}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-600 mb-2">
+          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <span className="text-sm font-medium truncate">{order.collectionPoint}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-500">
+          <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <span className="text-sm">
+            {new Date(order.createdAt).toLocaleString('en-GB', {
+              day: 'numeric', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit',
+            })}
           </span>
         </div>
       </div>
@@ -187,30 +182,23 @@ export default function OrderDetailPage() {
           {order.items.map((item: any, index: number) => (
             <div
               key={index}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100"
+              className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100"
             >
-              <div className="flex items-center gap-4">
-                <div className="relative w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                  {getImage(item.itemId, item.itemName) ? (
-                    <img
-                      src={getImage(item.itemId, item.itemName)}
-                      alt={item.itemName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-7 h-7 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <span className="text-base font-semibold text-gray-900">{item.itemName}</span>
-                  <p className="text-sm text-gray-500 mt-0.5">{item.itemId}</p>
-                </div>
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                {getImage(item.itemId, item.itemName) ? (
+                  <img
+                    src={getImage(item.itemId, item.itemName)}
+                    alt={item.itemName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="w-6 h-6 text-gray-400" />
+                  </div>
+                )}
               </div>
-              <div className="text-lg font-bold text-gray-900">
-                ×{item.quantity}
-              </div>
+              <span className="text-sm sm:text-base font-semibold text-gray-900 flex-1 min-w-0 truncate">{item.itemName}</span>
+              <span className="text-base font-bold text-gray-900 flex-shrink-0">×{item.quantity}</span>
             </div>
           ))}
         </div>
@@ -221,9 +209,9 @@ export default function OrderDetailPage() {
 
 function getStatusColor(status: string) {
   const colors: Record<string, string> = {
-    confirmed: 'bg-yellow-100 text-yellow-800 border-2 border-yellow-200',
-    packed: 'bg-blue-100 text-blue-800 border-2 border-blue-200',
-    collected: 'bg-green-100 text-green-800 border-2 border-green-200',
+    confirmed: 'bg-yellow-100 text-yellow-800 dark:bg-amber-500 dark:text-white',
+    packed:    'bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-white',
+    collected: 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-white',
   };
-  return colors[status] || 'bg-gray-100 text-gray-800';
+  return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100';
 }

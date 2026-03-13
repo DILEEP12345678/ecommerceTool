@@ -60,7 +60,7 @@ export default function AdminOrderDetailPage() {
   const products = Array.from(productMap.values());
 
   return (
-    <div className="flex flex-col h-[calc(100vh-56px)]">
+    <div className="flex flex-col sm:h-[calc(100vh-56px)]">
       {/* Back button */}
       <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2 flex-shrink-0">
         <button
@@ -73,10 +73,10 @@ export default function AdminOrderDetailPage() {
       </div>
 
       {/* Two-column body */}
-      <div className="flex flex-1 gap-3 max-w-4xl mx-auto w-full px-4 sm:px-6 pb-4 min-h-0">
+      <div className="flex flex-col sm:flex-row sm:flex-1 gap-3 max-w-4xl mx-auto w-full px-4 sm:px-6 pb-6 sm:pb-4 sm:min-h-0">
 
-        {/* ── LEFT: summary + timeline (fixed, no scroll) ── */}
-        <div className="w-full sm:w-64 flex-shrink-0 flex flex-col gap-3 overflow-hidden">
+        {/* ── LEFT: summary + timeline ── */}
+        <div className="w-full sm:w-64 flex-shrink-0 flex flex-col gap-3">
 
           {/* Order summary */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
@@ -167,13 +167,13 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
 
-        {/* ── RIGHT: order items (scrollable, no scrollbar) ── */}
-        <div className="flex-1 min-w-0 flex flex-col min-h-0">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col min-h-0 flex-1">
+        {/* ── RIGHT: order items ── */}
+        <div className="flex-1 min-w-0 flex flex-col sm:min-h-0">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col sm:min-h-0 sm:flex-1">
             <div className="px-5 pt-5 pb-3 flex-shrink-0 border-b border-gray-100 dark:border-gray-700">
               <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Order Items</h2>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ scrollbarWidth: 'none' }}>
+            <div className="sm:flex-1 sm:overflow-y-auto p-4 space-y-3" style={{ scrollbarWidth: 'none' }}>
               {products.map((product) => (
                 <div key={product.baseId} className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-600">
                   <div className="flex items-center px-4 py-3.5 gap-3">

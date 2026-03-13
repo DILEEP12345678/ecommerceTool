@@ -61,12 +61,12 @@ export default function AdminDashboard() {
         <div className="h-12 w-64 bg-white dark:bg-gray-800 rounded-xl animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-pulse h-24 ${i === 0 ? 'col-span-2 lg:col-span-1' : ''}`} />
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-pulse h-24" />
           ))}
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-pulse h-24 ${i === 0 ? 'col-span-2 lg:col-span-1' : ''}`} />
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-pulse h-24" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -184,7 +184,7 @@ function RevenueCard({ revenuePence }: { revenuePence: number }) {
   const pounds = Math.floor(displayedPence / 100);
   const pence = displayedPence % 100;
   return (
-    <div className="col-span-2 lg:col-span-1 rounded-2xl p-4 flex flex-col gap-2 bg-primary-600">
+    <div className="rounded-2xl p-4 flex flex-col gap-2 bg-primary-600">
       <div className="flex items-center justify-between">
         <PoundSterling className="w-4 h-4 text-primary-200" />
       </div>
@@ -223,7 +223,7 @@ function AovCard({ avgOrderValuePence }: { avgOrderValuePence: number }) {
   const pounds = Math.floor(displayed / 100);
   const pence = displayed % 100;
   return (
-    <div className="col-span-2 lg:col-span-1 rounded-2xl p-4 flex flex-col gap-2 bg-teal-600">
+    <div className="rounded-2xl p-4 flex flex-col gap-2 bg-teal-600">
       <PoundSterling className="w-4 h-4 text-teal-200" />
       <div>
         <p className="text-3xl font-bold tabular-nums leading-none text-white">

@@ -84,9 +84,9 @@ function PackListContent() {
   const anyChecked = checked.size > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 sm:pb-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1a1c19] pb-24 sm:pb-6">
       {/* Sticky top bar */}
-      <div className="sticky top-14 z-10 bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700">
+      <div className="sticky top-14 z-10 bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 min-w-0">
         <button
           onClick={() => router.back()}
           className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors -ml-1 flex-shrink-0"
@@ -125,7 +125,7 @@ function PackListContent() {
             <Loader2 className="w-7 h-7 text-primary-400 animate-spin" />
           </div>
         ) : confirmedItemsList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl shadow-sm">
+          <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
             <Package className="w-12 h-12 text-gray-200 mb-2" />
             <p className="text-sm font-semibold text-gray-400">No items to pack</p>
             <p className="text-xs text-gray-400 mt-1">All confirmed orders are packed</p>
@@ -139,7 +139,7 @@ function PackListContent() {
               return (
                 <div
                   key={product.baseId}
-                  className={`bg-white rounded-2xl shadow-sm overflow-hidden transition-opacity duration-200 ${isProductChecked ? 'opacity-50' : ''}`}
+                  className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden transition-opacity duration-200 ${isProductChecked ? 'opacity-50' : ''}`}
                 >
                   {/* Product header row */}
                   <div className="flex items-center px-4 py-3.5 gap-3">
@@ -156,21 +156,25 @@ function PackListContent() {
                       )}
                     </div>
                     <div>
-                      <p className={`text-sm font-bold text-gray-900 ${isProductChecked ? 'line-through text-gray-400' : ''}`}>
+                      <p className={`text-sm font-bold ${isProductChecked ? 'line-through text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
                         {product.productName}
                       </p>
-                      <p className="text-xs text-gray-400">{product.baseId}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">{product.baseId}</p>
                     </div>
                   </div>
 
                   {/* Variant sub-rows — always shown */}
-                  <div className="border-t border-gray-200/30 divide-y divide-gray-200/30">
+                  <div className="border-t border-gray-200/30 dark:border-gray-700/30 divide-y divide-gray-200/30 dark:divide-gray-700/30">
                     {product.variants.map((v: any) => {
                       const isVChecked = checked.has(v.itemId);
                       return (
-                        <div key={v.itemId} className="flex items-center justify-between px-4 py-2.5">
+                        <div
+                          key={v.itemId}
+                          onClick={() => toggle(v.itemId)}
+                          className="flex items-center justify-between px-4 py-2.5 cursor-pointer active:bg-gray-50 dark:active:bg-gray-700 transition-colors"
+                        >
                           <div className="flex items-center gap-2 pl-14">
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isVChecked ? 'bg-green-400' : 'bg-gray-300'}`} />
                             <span className={`text-sm font-medium ${isVChecked ? 'line-through text-gray-300' : 'text-gray-600'}`}>
                               {v.variantLabel || 'Single'}
                             </span>

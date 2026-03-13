@@ -135,12 +135,12 @@ export default function AllOrdersPage() {
           )}
         </div>
 
-        {/* Status pills */}
+        {/* Status pills — desktop only (mobile uses bottom tab bar) */}
         {(['all', 'confirmed', 'packed', 'collected'] as const).map(s => (
           <button
             key={s}
             onClick={() => setSelectedStatus(s)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+            className={`hidden sm:block px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
               selectedStatus === s
                 ? s === 'all' ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
                   : s === 'confirmed' ? 'bg-amber-500 text-white'
@@ -168,7 +168,7 @@ export default function AllOrdersPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.map((order: any, index: number) => (
-                <div key={order.orderId} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}>
+                <div key={order.orderId} className="animate-fade-in-up h-full" style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}>
                   <OrderCard order={order} router={router} getImage={getImage} />
                 </div>
               ))}
@@ -233,7 +233,7 @@ export default function AllOrdersPage() {
 const OrderCard = memo(({ order, router, getImage }: { order: any; router: any; getImage: (itemId: string, itemName: string) => string | undefined }) => (
   <div
     onClick={() => router.push(`/admin/orders/${order.orderId}`)}
-    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700 transition-all cursor-pointer"
+    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700 transition-all cursor-pointer h-full"
   >
     <div className="flex items-center justify-between mb-2">
       <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Order #{order.orderId.split('-')[1]}</p>
