@@ -24,7 +24,7 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     name: v.string(),
-    roles: v.array(v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin"))),
+    roles: v.optional(v.array(v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin")))),
     role: v.optional(v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin"))), // legacy
     collectionPoint: v.optional(v.string()),
     clerkId: v.string(),
