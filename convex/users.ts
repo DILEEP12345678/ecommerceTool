@@ -153,7 +153,7 @@ export const migrateRolesToArray = mutation({
     let migrated = 0;
     for (const user of users) {
       if (!user.roles) {
-        const roles = user.role ? [user.role] : ["customer"];
+        const roles = user.role ? [user.role] : ["customer" as const];
         await ctx.db.patch(user._id, { roles });
         migrated++;
       }
