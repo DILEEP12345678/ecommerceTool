@@ -3,31 +3,22 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { useUserRole } from '@/components/UserContext';
+import { useHasRole, useUserLoaded, useUserRole } from '@/components/UserContext';
 
-export default function CollectionPointLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function CollectionPointLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const role = useUserRole();
+  const isManager = useHasRole('collection_point_manager');
+  const isAdmin = useHasRole('admin');
+  const primaryRole = useUserRole();
+  const loaded = useUserLoaded();
 
-  // Redirect non-managers
   useEffect(() => {
-    if (role && role !== 'collection_point_manager') {
-      if (role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/store');
-      }
-    }
-  }, [role, router]);
+    if (!loaded) return;
+    if (!primaryRole) { router.push('/login'); return; }
+    if (!isManager && !isAdmin) router.push('/store');
+  }, [isManager, isAdmin, primaryRole, loaded, router]);
 
-  // Don't render collection point pages for non-managers
-  if (role && role !== 'collection_point_manager') {
-    return null;
-  }
+  if (!loaded || !primaryRole || (!isManager && !isAdmin)) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

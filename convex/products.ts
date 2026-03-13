@@ -1,5 +1,16 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, MutationCtx } from "./_generated/server";
+
+async function requireAdmin(ctx: MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error('Unauthenticated');
+  const caller = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .first();
+  const callerRoles = caller?.roles ?? ((caller as any)?.role ? [(caller as any).role] : []);
+  if (!caller || !callerRoles.includes('admin')) throw new Error('Unauthorized: admins only');
+}
 
 // ── Default product catalogue ─────────────────────────────────────────────────
 // Used only by the `seed` mutation — after seeding, all data lives in Convex.
@@ -126,6 +137,7 @@ export const upsert = mutation({
     variants:    v.optional(v.array(v.object({ label: v.string(), price: v.number(), weightG: v.number() }))),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("products")
       .withIndex("by_product_id", q => q.eq("productId", args.productId))
@@ -159,6 +171,7 @@ export const update = mutation({
     }))),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const product = await ctx.db
       .query("products")
       .withIndex("by_product_id", q => q.eq("productId", args.productId))
@@ -175,6 +188,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { productId: v.string() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const product = await ctx.db
       .query("products")
       .withIndex("by_product_id", q => q.eq("productId", args.productId))
@@ -186,11 +200,13 @@ export const remove = mutation({
 // Seed the table with default products (inserts or updates all defaults)
 export const seed = mutation({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     // Collect all known collection points from managers
-    const managers = await ctx.db
-      .query("users")
-      .withIndex("by_role", q => q.eq("role", "collection_point_manager"))
-      .collect();
+    const allUsers = await ctx.db.query("users").collect();
+    const managers = allUsers.filter((u: any) => {
+      const roles = u.roles ?? (u.role ? [u.role] : []);
+      return roles.includes("collection_point_manager");
+    });
     const allCPs: string[] = [...new Set(
       managers.map((m: any) => m.collectionPoint).filter(Boolean) as string[]
     )];

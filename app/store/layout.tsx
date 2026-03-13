@@ -3,31 +3,21 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { useUserRole } from '@/components/UserContext';
+import { useHasRole, useUserLoaded, useUserRole } from '@/components/UserContext';
 
-export default function StoreLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function StoreLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const role = useUserRole();
+  const isCustomer = useHasRole('customer');
+  const primaryRole = useUserRole();
+  const loaded = useUserLoaded();
 
-  // Redirect non-customers
   useEffect(() => {
-    if (role && role !== 'customer') {
-      if (role === 'admin') {
-        router.push('/admin');
-      } else if (role === 'collection_point_manager') {
-        router.push('/collection-point');
-      }
-    }
-  }, [role, router]);
+    if (!loaded) return;
+    if (!primaryRole) { router.push('/login'); return; }
+    if (!isCustomer) router.push(primaryRole === 'admin' ? '/admin' : '/collection-point');
+  }, [isCustomer, primaryRole, loaded, router]);
 
-  // Don't render store pages for non-customers
-  if (role && role !== 'customer') {
-    return null;
-  }
+  if (!loaded || !primaryRole || !isCustomer) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

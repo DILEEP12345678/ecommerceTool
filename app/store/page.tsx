@@ -167,11 +167,22 @@ export default function HomePage() {
 
       {/* Products Grid — Amazon-style */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-        {[...products].sort((a: any, b: any) => {
-          const aOOS = a.available === false || (selectedCollectionPoint && (a.collectionPoints ?? []).length > 0 && !(a.collectionPoints ?? []).includes(selectedCollectionPoint));
-          const bOOS = b.available === false || (selectedCollectionPoint && (b.collectionPoints ?? []).length > 0 && !(b.collectionPoints ?? []).includes(selectedCollectionPoint));
-          return (aOOS ? 1 : 0) - (bOOS ? 1 : 0);
-        }).map((product: any) => {
+        {(() => {
+          const isOOS = (p: any) => p.available === false || (selectedCollectionPoint && (p.collectionPoints ?? []).length > 0 && !(p.collectionPoints ?? []).includes(selectedCollectionPoint));
+          const sorted = [...products].sort((a: any, b: any) => (isOOS(a) ? 1 : 0) - (isOOS(b) ? 1 : 0));
+          const firstOOSIdx = sorted.findIndex((p: any) => isOOS(p));
+          const nodes: React.ReactNode[] = [];
+          sorted.forEach((product: any, index: number) => {
+            if (index === firstOOSIdx && firstOOSIdx > 0) {
+              nodes.push(
+                <div key="oos-divider" className="col-span-full flex items-center gap-3 py-2">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs font-semibold text-gray-400 whitespace-nowrap">Not available at this location</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+              );
+            }
+            nodes.push((() => {
           const hasVariants = product.variants?.length > 0;
           const selectedLabel = selectedVariants[product.productId] ?? product.variants?.[0]?.label;
           const selectedVariant = product.variants?.find((v: any) => v.label === selectedLabel);
@@ -186,7 +197,7 @@ export default function HomePage() {
           return (
             <div
               key={product.productId}
-              className={`bg-white border rounded-lg overflow-hidden flex flex-col transition-shadow ${outOfStock ? 'border-gray-200 opacity-60' : 'border-gray-200 hover:shadow-md'}`}
+              className={`bg-white border rounded-2xl overflow-hidden flex flex-col transition-shadow ${outOfStock ? 'border-gray-200 opacity-50' : 'border-gray-200 hover:shadow-md'}`}
             >
               {/* Square image */}
               <div className="relative aspect-square bg-gray-50 p-2">
@@ -204,7 +215,7 @@ export default function HomePage() {
                   <Package className="w-10 h-10 text-gray-300" />
                 </div>
                 {totalInCart > 0 && (
-                  <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
+                  <div key={totalInCart} className="absolute top-1.5 right-1.5 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center animate-badge-bounce">
                     <span className="text-white text-[10px] font-bold">{totalInCart}</span>
                   </div>
                 )}
@@ -234,7 +245,7 @@ export default function HomePage() {
                       <button
                         key={v.label}
                         onClick={() => setSelectedVariants(prev => ({ ...prev, [product.productId]: v.label }))}
-                        className={`px-1.5 py-0.5 text-[11px] rounded border transition-colors ${
+                        className={`px-2 py-1 text-[11px] rounded-lg border transition-colors ${
                           selectedLabel === v.label
                             ? 'border-primary-500 bg-primary-50 text-primary-700 font-semibold'
                             : 'border-gray-200 text-gray-500 hover:border-gray-400'
@@ -296,12 +307,15 @@ export default function HomePage() {
               </div>
             </div>
           );
-        })}
+            })()); // close nodes.push
+          }); // close forEach
+          return nodes;
+        })()}
       </div>
 
       {/* Floating checkout bar */}
       {totalItems > 0 && (
-        <div className="fixed bottom-16 sm:bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl p-3 sm:p-4 z-40">
+        <div className="fixed bottom-20 sm:bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl p-3 sm:p-4 z-50">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">

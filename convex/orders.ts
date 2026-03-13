@@ -16,6 +16,17 @@ export const create = mutation({
     collectionPoint: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!caller) throw new Error('User not found');
+    const callerRoles = caller.roles ?? ((caller as any).role ? [(caller as any).role] : []);
+    if (!callerRoles.includes('customer')) throw new Error('Only customers can place orders');
+
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const createdAt = Date.now();
 
@@ -144,6 +155,18 @@ export const updateStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    const callerRoles = caller?.roles ?? ((caller as any)?.role ? [(caller as any).role] : []);
+    if (!caller || (!callerRoles.includes('collection_point_manager') && !callerRoles.includes('admin'))) {
+      throw new Error('Unauthorized');
+    }
+
     // Find the order
     const order = await ctx.db
       .query("orders")
@@ -478,5 +501,143 @@ export const getConfirmedItemsSummary = query({
           a.variantLabel.localeCompare(b.variantLabel)
         ),
       }));
+  },
+});
+
+// ─── Admin Dashboard Metrics ──────────────────────────────────────────────────
+export const getDashboardMetrics = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+
+    const [orders, products] = await Promise.all([
+      ctx.db.query("orders").collect(),
+      ctx.db.query("products").collect(),
+    ]);
+
+    // Build price lookup: productId -> { basePrice, variants: { label -> price } }
+    const priceMap = new Map<string, { base: number; variants: Map<string, number> }>();
+    for (const p of products) {
+      const variantMap = new Map<string, number>();
+      for (const v of (p.variants ?? [])) variantMap.set(v.label, v.price);
+      priceMap.set(p.productId, { base: p.price ?? 0, variants: variantMap });
+    }
+
+    // Helper: pence for one order item
+    const itemRevenue = (itemId: string, quantity: number): number => {
+      const [baseId, ...rest] = itemId.split(':');
+      const entry = priceMap.get(baseId);
+      if (!entry) return 0;
+      const variantLabel = rest.join(':');
+      const unitPrice = variantLabel ? (entry.variants.get(variantLabel) ?? entry.base) : entry.base;
+      return unitPrice * quantity;
+    };
+
+    const total = orders.length;
+    const confirmed = orders.filter(o => o.status === 'confirmed').length;
+    const packed = orders.filter(o => o.status === 'packed').length;
+    const collected = orders.filter(o => o.status === 'collected').length;
+    const fulfillmentRate = total > 0 ? Math.round((collected / total) * 100) : 0;
+
+    // Total revenue (pence) — exclude cancelled orders
+    let totalRevenuePence = 0;
+    const activeOrders = orders.filter(o => o.status !== 'cancelled');
+    for (const order of activeOrders) {
+      for (const item of (order.items ?? []) as any[]) {
+        totalRevenuePence += itemRevenue(item.itemId, item.quantity);
+      }
+    }
+
+    // Average order value (pence)
+    const avgOrderValuePence = activeOrders.length > 0
+      ? Math.round(totalRevenuePence / activeOrders.length)
+      : 0;
+
+    // Active customers (unique) + repeat customer rate
+    const customerOrderCount: Record<string, number> = {};
+    for (const order of orders) {
+      customerOrderCount[order.username] = (customerOrderCount[order.username] ?? 0) + 1;
+    }
+    const activeCustomers = Object.keys(customerOrderCount).length;
+    const repeatCustomers = Object.values(customerOrderCount).filter(c => c > 1).length;
+    const repeatRate = activeCustomers > 0 ? Math.round((repeatCustomers / activeCustomers) * 100) : 0;
+
+    // Average turnaround time: confirmed → collected (ms → hours, for collected orders with statusUpdatedAt)
+    const collectedOrders = orders.filter(o => o.status === 'collected' && o.statusUpdatedAt);
+    const avgTurnaroundMs = collectedOrders.length > 0
+      ? collectedOrders.reduce((sum, o) => sum + (o.statusUpdatedAt! - o.createdAt), 0) / collectedOrders.length
+      : 0;
+    // Format as "Xh Ym" or "Xm"
+    const avgTurnaroundHours = Math.floor(avgTurnaroundMs / 3600000);
+    const avgTurnaroundMins = Math.round((avgTurnaroundMs % 3600000) / 60000);
+    const avgTurnaround = avgTurnaroundMs === 0 ? null
+      : avgTurnaroundHours > 0 ? `${avgTurnaroundHours}h ${avgTurnaroundMins}m`
+      : `${avgTurnaroundMins}m`;
+
+    // Daily order counts + revenue — last 14 days
+    const now = Date.now();
+    const fourteenDaysAgo = now - 14 * 24 * 60 * 60 * 1000;
+    const dailyMap: Record<string, { count: number; revenuePence: number }> = {};
+    // Use activeOrders for revenue in daily map
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now - i * 24 * 60 * 60 * 1000);
+      dailyMap[`${d.getMonth() + 1}/${d.getDate()}`] = { count: 0, revenuePence: 0 };
+    }
+    for (const order of orders) {
+      if (order.createdAt < fourteenDaysAgo) continue;
+      const d = new Date(order.createdAt);
+      const key = `${d.getMonth() + 1}/${d.getDate()}`;
+      if (!(key in dailyMap)) continue;
+      dailyMap[key].count++;
+      for (const item of (order.items ?? []) as any[]) {
+        dailyMap[key].revenuePence += itemRevenue(item.itemId, item.quantity);
+      }
+    }
+    const dailyOrders = Object.entries(dailyMap).map(([date, { count }]) => ({ date, count }));
+    const dailyRevenue = Object.entries(dailyMap).map(([date, { revenuePence }]) => ({ date, revenuePence }));
+
+    // Orders + revenue by collection point (sorted by revenue)
+    const cpMap: Record<string, { count: number; revenuePence: number }> = {};
+    for (const order of orders) {
+      if (!cpMap[order.collectionPoint]) cpMap[order.collectionPoint] = { count: 0, revenuePence: 0 };
+      cpMap[order.collectionPoint].count++;
+      for (const item of (order.items ?? []) as any[]) {
+        cpMap[order.collectionPoint].revenuePence += itemRevenue(item.itemId, item.quantity);
+      }
+    }
+    const byCollectionPoint = Object.entries(cpMap)
+      .sort((a, b) => b[1].revenuePence - a[1].revenuePence)
+      .map(([name, { count, revenuePence }]) => ({ name, count, revenuePence }));
+
+    // Top products by quantity (for pie chart)
+    const productQtyMap: Record<string, number> = {};
+    for (const order of orders) {
+      for (const item of (order.items ?? []) as any[]) {
+        const name = item.itemName.includes('(')
+          ? item.itemName.slice(0, item.itemName.lastIndexOf('(')).trim()
+          : item.itemName;
+        productQtyMap[name] = (productQtyMap[name] ?? 0) + item.quantity;
+      }
+    }
+    const topProducts = Object.entries(productQtyMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([name, count]) => ({ name, count }));
+
+    // Status breakdown
+    const statusBreakdown = [
+      { name: 'Confirmed', value: confirmed, color: '#f59e0b' },
+      { name: 'Packed',    value: packed,    color: '#3b82f6' },
+      { name: 'Collected', value: collected, color: '#10b981' },
+    ];
+
+    return {
+      total, confirmed, packed, collected, fulfillmentRate,
+      totalRevenuePence, avgOrderValuePence,
+      activeCustomers, repeatCustomers, repeatRate,
+      avgTurnaround,
+      dailyOrders, dailyRevenue, byCollectionPoint, topProducts, statusBreakdown,
+    };
   },
 });

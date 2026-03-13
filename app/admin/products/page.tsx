@@ -6,7 +6,7 @@ import { Check, ChevronDown, Layers, Loader2, MapPin, Package, Pencil, Plus, Sea
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useUser, useUserLoaded } from '../../../components/UserContext';
+import { useHasRole, useUserLoaded } from '../../../components/UserContext';
 import { SENSITIVITY_GROUPS } from '../../../lib/bagPlan';
 
 /** Parse a variant label and return an estimated weight in grams, or '' if not parseable. */
@@ -53,7 +53,7 @@ function formatPrice(pence: number) {
 
 export default function ProductsPage() {
   const router = useRouter();
-  const user = useUser();
+  const isAdmin = useHasRole('admin');
   const loaded = useUserLoaded();
   const products = useQuery(api.products.list);
   const collectionPoints = useQuery(api.users.getCollectionPoints) ?? [];
@@ -72,8 +72,8 @@ export default function ProductsPage() {
 
   useEffect(() => {
     if (!loaded) return;
-    if (!user || user.role !== 'admin') router.push('/login');
-  }, [user, router, loaded]);
+    if (!isAdmin) router.push('/login');
+  }, [isAdmin, router, loaded]);
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -203,7 +203,7 @@ export default function ProductsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search products…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white transition-colors"
+            className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-400 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white dark:focus:bg-gray-600 transition-colors"
           />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -218,15 +218,9 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Seed button + count */}
+      {/* Seed button */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          {products && (
-            <span className="text-xs bg-primary-100 text-primary-700 font-bold px-2 py-0.5 rounded-full">
-              {products.length} products
-            </span>
-          )}
-        </div>
+        <div />
         {!isSeeded && (
           <button
             onClick={handleSeed}
@@ -405,7 +399,7 @@ export default function ProductsPage() {
                   key={product.productId}
                   className={`grid grid-cols-[1fr_80px_110px_160px_90px_60px] gap-3 items-center px-4 py-3 ${
                     idx < filteredProducts.length - 1 ? 'border-b border-gray-100' : ''
-                  } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-colors`}
+                  } ${isEditing ? 'bg-primary-50' : 'hover:bg-gray-50'} transition-all duration-200`}
                 >
                   <div className="min-w-0">
                     {isEditing ? (
