@@ -143,7 +143,7 @@ export default function HomePage() {
                     <button
                       key={p}
                       onClick={() => { setSelectedCollectionPoint(p); setCpOpen(false); }}
-                      className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl ${
+                      className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl whitespace-nowrap ${
                         selectedCollectionPoint === p
                           ? 'bg-primary-50 text-primary-700'
                           : 'text-gray-700 hover:bg-gray-50'
@@ -175,7 +175,9 @@ export default function HomePage() {
           const cartKey = hasVariants ? `${product.productId}:${selectedLabel}` : product.productId;
           const qty = getItemQuantity(cartKey);
           const totalInCart = hasVariants ? getTotalForProduct(product.productId) : qty;
-          const outOfStock = product.available === false;
+          const cpList: string[] = product.collectionPoints ?? [];
+          const notAtThisCP = selectedCollectionPoint !== '' && cpList.length > 0 && !cpList.includes(selectedCollectionPoint);
+          const outOfStock = product.available === false || notAtThisCP;
 
           return (
             <div

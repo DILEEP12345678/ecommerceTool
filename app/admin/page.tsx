@@ -107,7 +107,7 @@ export default function AdminPage() {
                   <button
                     key={item.value}
                     onClick={() => { setSelectedCollectionPoint(item.value); setSelectedStatus('all'); setCpOpen(false); }}
-                    className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl ${
+                    className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl whitespace-nowrap ${
                       selectedCollectionPoint === item.value ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'
                     } ${idx < arr.length - 1 ? 'border-b border-gray-100' : ''}`}
                   >
