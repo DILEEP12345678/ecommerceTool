@@ -146,7 +146,7 @@ export const migrateRolesToArray = mutation({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .first();
-    if (!caller?.roles.includes('admin')) throw new Error('Unauthorized: admins only');
+    if (!caller?.roles?.includes('admin')) throw new Error('Unauthorized: admins only');
 
     const users = await ctx.db.query("users").collect();
     let migrated = 0;
