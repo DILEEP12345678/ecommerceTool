@@ -130,9 +130,54 @@ export const listAll = query({
 export const getCollectionPoints = query({
   handler: async (ctx) => {
     const allUsers = await ctx.db.query("users").collect();
-    return allUsers
+    const names = allUsers
       .filter((u) => (u.roles ?? []).includes("collection_point_manager") && u.collectionPoint)
       .map((u) => u.collectionPoint as string);
+    return [...new Set(names)].sort();
+  },
+});
+
+// Get credits + history for the calling user
+export const getCredits = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return { credits: 0, history: [] };
+    const user = await ctx.db.query("users").withIndex("by_clerk_id", q => q.eq("clerkId", identity.subject)).first();
+    if (!user) return { credits: 0, history: [] };
+    const history = await ctx.db.query("creditHistory").withIndex("by_user", q => q.eq("userId", user._id)).order("desc").take(100);
+    return { credits: user.credits ?? 0, history };
+  },
+});
+
+// Award credits for packing an order
+export const awardCredits = mutation({
+  args: { orderId: v.string(), amount: v.number(), label: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db.query("users").withIndex("by_clerk_id", q => q.eq("clerkId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, { credits: (user.credits ?? 0) + args.amount });
+    await ctx.db.insert("creditHistory", {
+      userId: user._id,
+      orderId: args.orderId,
+      amount: args.amount,
+      label: args.label,
+      timestamp: Date.now(),
+    });
+  },
+});
+
+// Reset credits for the calling user
+export const resetCredits = mutation({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    const user = await ctx.db.query("users").withIndex("by_clerk_id", q => q.eq("clerkId", identity.subject)).first();
+    if (!user) throw new Error("User not found");
+    await ctx.db.patch(user._id, { credits: 0 });
+    const history = await ctx.db.query("creditHistory").withIndex("by_user", q => q.eq("userId", user._id)).collect();
+    await Promise.all(history.map(h => ctx.db.delete(h._id)));
   },
 });
 

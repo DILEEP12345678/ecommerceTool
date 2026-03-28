@@ -27,9 +27,18 @@ export default defineSchema({
     roles: v.optional(v.array(v.union(v.literal("customer"), v.literal("collection_point_manager"), v.literal("admin")))),
     collectionPoint: v.optional(v.string()),
     clerkId: v.string(),
+    credits: v.optional(v.number()),
   })
     .index("by_email", ["email"])
     .index("by_clerk_id", ["clerkId"]),
+
+  creditHistory: defineTable({
+    userId: v.id("users"),
+    orderId: v.string(),
+    amount: v.number(),
+    label: v.string(),
+    timestamp: v.number(),
+  }).index("by_user", ["userId"]),
 
   orders: defineTable({
     orderId: v.string(),

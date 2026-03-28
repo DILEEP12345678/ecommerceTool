@@ -168,7 +168,7 @@ export default function AllOrdersPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.map((order: any, index: number) => (
-                <div key={order.orderId} className="animate-fade-in-up h-full" style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}>
+                <div key={order.orderId} className="animate-card-enter h-full" style={{ animationDelay: `${Math.min(index, 12) * 60}ms` }}>
                   <OrderCard order={order} router={router} getImage={getImage} />
                 </div>
               ))}

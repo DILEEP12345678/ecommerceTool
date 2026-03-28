@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
-import { Loader2, Package, MapPin, ArrowLeft, Clock, CheckCircle2, Circle } from 'lucide-react';
+import { Package, MapPin, ArrowLeft, Clock, CheckCircle2, Circle } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useUsername, useUserLoaded } from '../../../../components/UserContext';
 import { useEffect } from 'react';
@@ -34,9 +35,66 @@ export default function OrderDetailPage() {
   }, [username, router, loaded]);
 
   if (order === undefined) {
+    const sh = (delay = '0s', w = '100%') => ({
+      width: w,
+      background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)',
+      backgroundSize: '200% 100%',
+      animation: `shimmer 1.6s ease-in-out infinite ${delay}`,
+    } as React.CSSProperties);
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-primary-500 animate-spin" />
+      <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6 pb-24 sm:pb-6">
+        {/* Back button skeleton */}
+        <div className="h-5 w-36 rounded-lg mb-6" style={sh()} />
+
+        {/* Header card skeleton */}
+        <div className="bg-white rounded-2xl border-2 border-gray-100 p-4 sm:p-6 mb-5 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="h-7 w-32 rounded-lg" style={sh('0.05s')} />
+            <div className="h-6 w-20 rounded-xl flex-shrink-0" style={sh('0.1s')} />
+          </div>
+          <div className="h-3.5 w-48 rounded-md" style={sh('0.1s')} />
+          <div className="h-3.5 w-40 rounded-md" style={sh('0.15s')} />
+        </div>
+
+        {/* Timeline skeleton */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 p-6 mb-5">
+          <div className="h-5 w-28 rounded-lg mb-6" style={sh()} />
+          <div className="space-y-2">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full flex-shrink-0" style={sh(`${i * 0.08}s`)} />
+                  {i < 2 && <div className="w-1 h-14 mt-1 rounded bg-gray-100 dark:bg-gray-700" />}
+                </div>
+                <div className="flex-1 pb-6 space-y-2 pt-2">
+                  <div className="h-4 w-32 rounded-md" style={sh(`${i * 0.08}s`)} />
+                  <div className="h-3 rounded-md" style={sh(`${i * 0.08 + 0.05}s`, '80%')} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Items skeleton */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-700">
+            <div className="h-5 w-28 rounded-lg" style={sh()} />
+          </div>
+          <div className="p-4 space-y-3">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-600">
+                <div className="flex items-center gap-3 px-4 py-3.5" style={{ background: 'linear-gradient(90deg, #f9fafb 25%, #f3f4f6 50%, #f9fafb 75%)', backgroundSize: '200% 100%', animation: `shimmer 1.6s ease-in-out infinite ${i * 0.1}s` }}>
+                  <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-600 flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 rounded-md bg-gray-200 dark:bg-gray-600" style={{ width: `${55 + i * 10}%` }} />
+                    <div className="h-3 w-16 rounded-md bg-gray-200 dark:bg-gray-600" />
+                  </div>
+                  <div className="h-5 w-8 rounded-md bg-gray-200 dark:bg-gray-600" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

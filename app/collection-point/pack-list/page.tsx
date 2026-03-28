@@ -83,40 +83,41 @@ function PackListContent() {
 
   const anyChecked = checked.size > 0;
 
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#1a1c19] pb-24 sm:pb-6">
       {/* Sticky top bar */}
-      <div className="sticky top-14 z-10 bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 min-w-0">
-        <button
-          onClick={() => router.back()}
-          className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors -ml-1 flex-shrink-0"
-          aria-label="Back to dashboard"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-primary-500 flex-shrink-0" />
-            <h1 className="text-lg font-bold text-gray-900">Pack List</h1>
-            {confirmedItemsList !== undefined && (
-              <span className="text-xs bg-primary-100 text-primary-700 font-bold px-2 py-0.5 rounded-full">
-                {confirmedItemsList.length} products
-              </span>
+      <div className="sticky top-14 z-10 bg-white dark:bg-gray-800 shadow-sm px-4 pt-3 pb-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 min-w-0">
+          <button
+            onClick={() => router.back()}
+            className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors -ml-1 flex-shrink-0"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-primary-500 flex-shrink-0" />
+              <h1 className="text-lg font-bold text-gray-900">Pack List</h1>
+              {confirmedItemsList !== undefined && (
+                <span className="text-xs bg-primary-100 text-primary-700 font-bold px-2 py-0.5 rounded-full">
+                  {confirmedItemsList.length} products
+                </span>
+              )}
+            </div>
+            {lastUpdated && (
+              <p className="text-xs text-gray-400 mt-0.5">Updated {lastUpdated}</p>
             )}
           </div>
-          {lastUpdated && (
-            <p className="text-xs text-gray-400 mt-0.5">Updated {lastUpdated}</p>
+          {anyChecked && (
+            <button
+              onClick={clearAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Clear
+            </button>
           )}
-        </div>
-        {anyChecked && (
-          <button
-            onClick={clearAll}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Clear
-          </button>
-        )}
       </div>
 
       <div className="px-4 pt-4 max-w-7xl mx-auto">
@@ -159,7 +160,6 @@ function PackListContent() {
                       <p className={`text-sm font-bold ${isProductChecked ? 'line-through text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
                         {product.productName}
                       </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{product.baseId}</p>
                     </div>
                   </div>
 

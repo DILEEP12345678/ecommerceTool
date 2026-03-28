@@ -6,6 +6,8 @@ import { ClipboardList, Loader2, Package, ChevronDown, MapPin } from 'lucide-rea
 import { useUsername, useUserLoaded } from '../../../components/UserContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, memo } from 'react';
+import { useCustomerOrderNotifications } from '../../../lib/useCustomerNotifications';
+import { useNotifications } from '../../../components/NotificationContext';
 
 const PAGE_SIZE = 20;
 
@@ -35,6 +37,9 @@ export default function OrdersPage() {
       router.push('/login');
     }
   }, [username, router, loaded]);
+
+  const { addNotification } = useNotifications();
+  useCustomerOrderNotifications(orders, addNotification);
 
   if (loadStatus === 'LoadingFirstPage') {
     return (

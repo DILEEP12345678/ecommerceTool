@@ -2,7 +2,7 @@
 
 import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
-import { Loader2, Package, User, MapPin, ArrowLeft, Clock, CheckCircle2, Circle } from 'lucide-react';
+import { Package, User, MapPin, ArrowLeft, Clock, CheckCircle2, Circle } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useHasRole, useUserLoaded } from '../../../../components/UserContext';
 import { useEffect } from 'react';
@@ -33,8 +33,65 @@ export default function AdminOrderDetailPage() {
 
   if (order === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-primary-500 animate-spin" />
+      <div className="flex flex-col sm:h-[calc(100vh-56px)]">
+        <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2 flex-shrink-0">
+          <div className="h-5 w-36 rounded-lg bg-gray-200 dark:bg-gray-700" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.6s ease-in-out infinite' }} />
+        </div>
+        <div className="flex flex-col sm:flex-row sm:flex-1 gap-3 max-w-4xl mx-auto w-full px-4 sm:px-6 pb-6 sm:pb-4 sm:min-h-0">
+          {/* Left skeleton */}
+          <div className="w-full sm:w-64 flex-shrink-0 flex flex-col gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
+              <div className="flex justify-between">
+                <div className="h-4 w-28 rounded-md" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.6s ease-in-out infinite' }} />
+                <div className="h-5 w-16 rounded-lg" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.6s ease-in-out infinite 0.1s' }} />
+              </div>
+              {[['70%', '0.05s'], ['55%', '0.1s'], ['60%', '0.15s']].map(([w, d], i) => (
+                <div key={i} className="h-3 rounded-md" style={{ width: w, background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: `shimmer 1.6s ease-in-out infinite ${d}` }} />
+              ))}
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-4">
+              <div className="h-4 w-24 rounded-md" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.6s ease-in-out infinite' }} />
+              {[0, 1, 2].map(i => (
+                <div key={i} className="flex gap-2 items-start">
+                  <div className="w-7 h-7 rounded-full flex-shrink-0" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: `shimmer 1.6s ease-in-out infinite ${i * 0.08}s` }} />
+                  <div className="flex-1 space-y-1.5 pt-1">
+                    <div className="h-3 w-24 rounded-md" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: `shimmer 1.6s ease-in-out infinite ${i * 0.08}s` }} />
+                    <div className="h-2.5 w-32 rounded-md" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: `shimmer 1.6s ease-in-out infinite ${i * 0.08 + 0.05}s` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Right skeleton — order items */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+              <div className="px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-700">
+                <div className="h-4 w-24 rounded-md" style={{ background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.6s ease-in-out infinite' }} />
+              </div>
+              <div className="p-4 space-y-3">
+                {[0, 1, 2, 3].map(i => (
+                  <div key={i} className="rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-600" style={{ animationDelay: `${i * 80}ms` }}>
+                    <div className="flex items-center px-4 py-3.5 gap-3" style={{ background: 'linear-gradient(90deg, #f9fafb 25%, #f3f4f6 50%, #f9fafb 75%)', backgroundSize: '200% 100%', animation: `shimmer 1.6s ease-in-out infinite ${i * 0.1}s` }}>
+                      <div className="w-11 h-11 rounded-xl bg-gray-200 dark:bg-gray-600 flex-shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3.5 rounded-md bg-gray-200 dark:bg-gray-600" style={{ width: `${50 + (i % 3) * 15}%` }} />
+                        <div className="h-2.5 w-20 rounded-md bg-gray-200 dark:bg-gray-600" />
+                      </div>
+                    </div>
+                    <div className="border-t border-gray-200/50 dark:border-gray-600/50">
+                      {[0, 1].map(j => (
+                        <div key={j} className="flex items-center justify-between px-4 py-2.5 border-b last:border-0 border-gray-100 dark:border-gray-700">
+                          <div className="h-3 w-28 rounded-md pl-14 bg-gray-100 dark:bg-gray-700" />
+                          <div className="h-4 w-10 rounded-md bg-gray-100 dark:bg-gray-700" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Loader2, Package, CheckCircle2, Clock, TrendingUp, MapPin, ShoppingBag, PoundSterling, BarChart2, Users, RefreshCw, Timer } from 'lucide-react';
@@ -92,24 +93,36 @@ export default function AdminDashboard() {
 
       {/* ── KPI CARDS ROW 1 — Order pipeline ─────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <RevenueCard revenuePence={metrics.totalRevenuePence} />
-        <KpiCard label="Confirmed"     value={metrics.confirmed} icon={Clock}        color="bg-amber-500"                   textColor="text-white"                     subColor="text-amber-200"                   iconColor="text-amber-200" />
-        <KpiCard label="Packed"        value={metrics.packed}    icon={Package}      color="bg-blue-500"                    textColor="text-white"                     subColor="text-blue-200"                    iconColor="text-blue-200" />
-        <KpiCard label="Collected"     value={metrics.collected} icon={CheckCircle2} color="bg-green-500"                   textColor="text-white"                     subColor="text-green-200"                   iconColor="text-green-200" badge={`${metrics.fulfillmentRate}% rate`} />
+        {([
+          <RevenueCard key="rev" revenuePence={metrics.totalRevenuePence} />,
+          <KpiCard key="conf" label="Confirmed"     value={metrics.confirmed} icon={Clock}        color="bg-amber-500"  textColor="text-white" subColor="text-amber-200"  iconColor="text-amber-200" />,
+          <KpiCard key="pack" label="Packed"        value={metrics.packed}    icon={Package}      color="bg-blue-500"   textColor="text-white" subColor="text-blue-200"   iconColor="text-blue-200" />,
+          <KpiCard key="coll" label="Collected"     value={metrics.collected} icon={CheckCircle2} color="bg-green-500"  textColor="text-white" subColor="text-green-200"  iconColor="text-green-200" badge={`${metrics.fulfillmentRate}% rate`} />,
+        ] as React.ReactNode[]).map((card, i) => (
+          <div key={i} className="animate-card-enter" style={{ animationDelay: `${i * 60}ms` }}>
+            {card}
+          </div>
+        ))}
       </div>
 
       {/* ── KPI CARDS ROW 2 — Business health ────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <AovCard avgOrderValuePence={metrics.avgOrderValuePence} />
-        <KpiCard label="Active Customers" value={metrics.activeCustomers}  icon={Users}       color="bg-violet-500"  textColor="text-white" subColor="text-violet-200"  iconColor="text-violet-200" />
-        <KpiCard label="Repeat Customers" value={metrics.repeatCustomers}  icon={RefreshCw}   color="bg-indigo-500"  textColor="text-white" subColor="text-indigo-200"  iconColor="text-indigo-200" badge={`${metrics.repeatRate}% rate`} />
-        <TurnaroundCard avgTurnaround={metrics.avgTurnaround} />
+        {([
+          <AovCard key="aov" avgOrderValuePence={metrics.avgOrderValuePence} />,
+          <KpiCard key="ac"  label="Active Customers" value={metrics.activeCustomers} icon={Users}     color="bg-violet-500" textColor="text-white" subColor="text-violet-200" iconColor="text-violet-200" />,
+          <KpiCard key="rc"  label="Repeat Customers" value={metrics.repeatCustomers} icon={RefreshCw} color="bg-indigo-500" textColor="text-white" subColor="text-indigo-200" iconColor="text-indigo-200" badge={`${metrics.repeatRate}% rate`} />,
+          <TurnaroundCard key="ta" avgTurnaround={metrics.avgTurnaround} />,
+        ] as React.ReactNode[]).map((card, i) => (
+          <div key={i} className="animate-card-enter" style={{ animationDelay: `${240 + i * 60}ms` }}>
+            {card}
+          </div>
+        ))}
       </div>
 
       {/* ── CHARTS ROW ────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-card-enter" style={{ animationDelay: '480ms' }}>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-primary-500" />
             <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">Orders — Last 14 Days</h2>
@@ -117,7 +130,7 @@ export default function AdminDashboard() {
           <OrdersBarChart data={metrics.dailyOrders} />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-card-enter" style={{ animationDelay: '540ms' }}>
           <div className="flex items-center gap-2 mb-4">
             <BarChart2 className="w-4 h-4 text-primary-500" />
             <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">Revenue — Last 14 Days</h2>
@@ -129,7 +142,7 @@ export default function AdminDashboard() {
       {/* ── COLLECTION POINTS + TOP PRODUCTS ─────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-card-enter" style={{ animationDelay: '600ms' }}>
           <div className="flex items-center gap-2 mb-4">
             <MapPin className="w-4 h-4 text-primary-500" />
             <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">Collection Point Performance</h2>
@@ -162,7 +175,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 animate-card-enter" style={{ animationDelay: '660ms' }}>
           <div className="flex items-center gap-2 mb-2">
             <ShoppingBag className="w-4 h-4 text-primary-500" />
             <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">Top Products</h2>

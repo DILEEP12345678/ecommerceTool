@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import * as React from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { Plus, Minus, Loader2, Package, MapPin, ShoppingBag, ShoppingCart, ChevronDown } from 'lucide-react';
+import { Plus, Minus, Loader2, Package, MapPin, ShoppingBag, ShoppingCart } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useUserId, useUsername, useCollectionPoint } from '../../components/UserContext';
 
@@ -27,19 +27,10 @@ export default function HomePage() {
   const userCollectionPoint = useCollectionPoint();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [selectedCollectionPoint, setSelectedCollectionPoint] = useState(userCollectionPoint || '');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
-  const [cpOpen, setCpOpen] = useState(false);
 
   const products = useQuery(api.products.list);
-  const collectionPoints = useQuery(api.users.getCollectionPoints);
   const createOrder = useMutation(api.orders.create);
-
-  React.useEffect(() => {
-    if (userCollectionPoint && !selectedCollectionPoint) {
-      setSelectedCollectionPoint(userCollectionPoint);
-    }
-  }, [userCollectionPoint, selectedCollectionPoint]);
 
   // Initialise selected variant to first option per product
   useEffect(() => {
@@ -82,12 +73,12 @@ export default function HomePage() {
   const handleCheckout = async () => {
     if (cart.length === 0) { toast.error('Please add items to your order first'); return; }
     if (!username) { toast.error('Please login to place an order'); return; }
-    if (!selectedCollectionPoint) { toast.error('Please select a collection point'); return; }
+    if (!userCollectionPoint) { toast.error('Please select a collection point from the menu'); return; }
     try {
       await createOrder({
         items: cart.map(item => ({ itemId: item.cartKey, itemName: item.name, quantity: item.quantity })),
         username,
-        collectionPoint: selectedCollectionPoint,
+        collectionPoint: userCollectionPoint,
       });
       toast.success('Order placed successfully!');
       setCart([]);
@@ -112,63 +103,19 @@ export default function HomePage() {
         <p className="text-gray-500 text-sm mb-0.5">Hello, {username || 'Guest'} 👋</p>
         <h1 className="text-xl font-bold text-gray-900 mb-4">What would you like to order?</h1>
 
-        {/* Collection Point — bubble picker */}
-        <div className="relative inline-block">
-          <button
-            onClick={() => setCpOpen(o => !o)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm border-2 transition-all ${
-              selectedCollectionPoint
-                ? 'bg-primary-50 border-primary-300 text-primary-700 hover:border-primary-400'
-                : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300'
-            }`}
-          >
-            {!collectionPoints ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-            )}
-            <span>{selectedCollectionPoint || 'Select collection point'}</span>
-            <ChevronDown className={`w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${cpOpen ? 'rotate-180' : ''}`} />
-          </button>
-
-          {cpOpen && collectionPoints && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setCpOpen(false)} />
-              <div className="absolute left-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 w-[min(85vw,280px)] animate-fade-in-scale">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1">
-                  Collection points
-                </p>
-                <div className="flex flex-col">
-                  {collectionPoints.map((p, idx) => (
-                    <button
-                      key={p}
-                      onClick={() => { setSelectedCollectionPoint(p); setCpOpen(false); }}
-                      className={`flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-left transition-colors rounded-xl whitespace-nowrap ${
-                        selectedCollectionPoint === p
-                          ? 'bg-primary-50 text-primary-700'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      } ${idx < collectionPoints.length - 1 ? 'border-b border-gray-100' : ''}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${selectedCollectionPoint === p ? 'text-primary-500' : 'text-gray-400'}`} />
-                        {p}
-                      </div>
-                      {selectedCollectionPoint === p && (
-                        <div className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Collection point badge */}
+        {userCollectionPoint && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-primary-50 border border-primary-200 text-primary-700">
+            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{userCollectionPoint}</span>
+          </div>
+        )}
       </div>
 
       {/* Products Grid — Amazon-style */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {(() => {
-          const isOOS = (p: any) => p.available === false || (selectedCollectionPoint && (p.collectionPoints ?? []).length > 0 && !(p.collectionPoints ?? []).includes(selectedCollectionPoint));
+          const isOOS = (p: any) => p.available === false || ((userCollectionPoint ?? '') !== '' && (p.collectionPoints ?? []).length > 0 && !(p.collectionPoints ?? []).includes(userCollectionPoint));
           const sorted = [...products].sort((a: any, b: any) => (isOOS(a) ? 1 : 0) - (isOOS(b) ? 1 : 0));
           const firstOOSIdx = sorted.findIndex((p: any) => isOOS(p));
           const nodes: React.ReactNode[] = [];

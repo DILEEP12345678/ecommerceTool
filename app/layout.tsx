@@ -5,6 +5,8 @@ import ToastProvider from '../components/ToastProvider';
 import { Providers } from './providers';
 import { UserProvider } from '../components/UserContext';
 import { ThemeProvider } from '../components/ThemeProvider';
+import { PageTitleProvider } from '../components/PageTitleContext';
+import { NotificationProvider } from '../components/NotificationContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#16a34a',
+  themeColor: '#3b82f6',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -43,7 +45,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SquadBid" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#16a34a" />
+        <meta name="theme-color" content="#3b82f6" />
         <link rel="icon" href="/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
@@ -51,7 +53,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <ThemeProvider>
-            <UserProvider>{children}</UserProvider>
+            <PageTitleProvider>
+              <NotificationProvider>
+                <UserProvider>{children}</UserProvider>
+              </NotificationProvider>
+            </PageTitleProvider>
           </ThemeProvider>
         </Providers>
         <ToastProvider />

@@ -49,7 +49,7 @@ export default function AdminUsersPage() {
       await updateRoles({
         userId: userId as any,
         roles: pendingRoles,
-        collectionPoint: pendingCP.trim() || undefined,
+        collectionPoint: pendingCP.trim(),
       });
       toast.success('User updated');
       setEditing(null);
