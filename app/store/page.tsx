@@ -138,7 +138,7 @@ export default function HomePage() {
           const qty = getItemQuantity(cartKey);
           const totalInCart = hasVariants ? getTotalForProduct(product.productId) : qty;
           const cpList: string[] = product.collectionPoints ?? [];
-          const notAtThisCP = selectedCollectionPoint !== '' && cpList.length > 0 && !cpList.includes(selectedCollectionPoint);
+          const notAtThisCP = (userCollectionPoint ?? '') !== '' && cpList.length > 0 && !cpList.includes(userCollectionPoint ?? '');
           const outOfStock = product.available === false || notAtThisCP;
 
           return (
@@ -293,7 +293,7 @@ export default function HomePage() {
               <MapPin className="w-4 h-4 text-primary-500 flex-shrink-0" />
               <div>
                 <p className="text-xs text-primary-600 font-semibold">Collection Point</p>
-                <p className="text-sm font-bold text-primary-900">{selectedCollectionPoint}</p>
+                <p className="text-sm font-bold text-primary-900">{userCollectionPoint}</p>
               </div>
             </div>
 
