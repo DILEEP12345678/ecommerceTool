@@ -152,6 +152,14 @@ export default function Navbar() {
                 aria-label="Open menu"
               >
                 <div className="flex items-center gap-2">
+                  {(role === 'collection_point_manager' || (isAdmin && isOnCollectionPoint)) && (
+                    <span
+                      onClick={e => { e.stopPropagation(); setShowCreditsHistory(true); }}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-50 dark:bg-yellow-900/30 px-2 py-0.5 rounded-full cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
+                    >
+                      ⭐ {credits}
+                    </span>
+                  )}
                   <button
                     onClick={e => { e.stopPropagation(); setShowNotifications(v => !v); if (unreadCount > 0) markAllRead(); }}
                     className="relative p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -165,14 +173,6 @@ export default function Navbar() {
                     )}
                   </button>
                   <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 hidden sm:block">{user?.name}</span>
-                  {(role === 'collection_point_manager' || (isAdmin && isOnCollectionPoint)) && (
-                    <span
-                      onClick={e => { e.stopPropagation(); setShowCreditsHistory(true); }}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-50 dark:bg-yellow-900/30 px-2 py-0.5 rounded-full cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
-                    >
-                      ⭐ {credits}
-                    </span>
-                  )}
                   <div className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-gray-800 group-hover:ring-primary-200 transition-all flex-shrink-0 overflow-hidden bg-primary-500">
                     {avatarUrl
                       ? <img src={avatarUrl} alt={user?.name} className="w-full h-full object-cover" />
